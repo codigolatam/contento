@@ -6,7 +6,7 @@ Contento gestiona el **trabajo** de producir contenido: planificar, encuadrar, r
 
 Su diferencia estructural: está diseñado para que el trabajo lo ejecuten **agentes**, no solo humanos. El servidor MCP es el contrato programático oficial del producto, no una integración secundaria.
 
-> **Estado:** fase fundacional. El repositorio contiene el scaffold del servicio y de la aplicación web (tarea 001).
+> **Estado:** fase fundacional. El repositorio contiene el scaffold del servicio y de la aplicación web.
 
 ## Características
 

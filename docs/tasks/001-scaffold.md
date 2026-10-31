@@ -100,4 +100,4 @@ Ninguna expectativa tiene caso de uso propio: el PRD no describe el scaffold, as
 
 - Subagente: 2026-10-30 — Aprueba
 - Usuario (ejecución): 2026-10-30 — Aprueba
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (cierre): 2026-10-30 — Aprueba

@@ -2,7 +2,7 @@
 
 ## Estado
 
-[ ] Pendiente
+[r] En revisión
 
 ## Tipo
 

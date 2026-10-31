@@ -5,7 +5,7 @@ Esta guía es para quien instala y mantiene Contento. Si solo lo usas, ve a [Abr
 ## Requisitos
 
 - Node.js 22.22.2 o superior.
-- npm, incluido con Node.js.
+- npm, que viene con Node.js.
 
 ## Instalar las dependencias
 
@@ -30,7 +30,7 @@ npm run build
 npm start
 ```
 
-Sin el paso de compilación, el servidor responde a `/health`, pero la página de inicio devuelve un error de página no encontrada.
+Si no compilas primero, el servidor funciona, pero la página de inicio muestra un error de página no encontrada.
 
 ## Puerto
 
@@ -57,12 +57,3 @@ Si el servicio está en marcha, la respuesta es:
 ## Seguridad de los archivos
 
 El servidor solo sirve los archivos de la carpeta compilada de la aplicación. Una petición que intente acceder a archivos fuera de esa carpeta recibe un error de página no encontrada, aunque la ruta esté codificada.
-
-## Verificación automática
-
-Esta guía describe comportamientos que la suite de pruebas comprueba en cada cambio:
-
-- El servicio escucha en el puerto 3000 cuando no se define `PORT`. (`server.test.ts`: «listens on port 3000 when PORT is not set»)
-- Un valor no válido en `PORT` impide el arranque. (`server.test.ts`: «rejects the invalid port %j»)
-- `/health` responde 200 con el estado `ok`. (`app.test.ts`: «returns 200 with an ok status payload»)
-- Los archivos fuera de la carpeta compilada no se sirven. (`app.test.ts`: «does not serve files outside the web root for the encoded traversal path %s»)

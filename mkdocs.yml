@@ -4,10 +4,12 @@ docs_dir: product-docs
 site_dir: site
 theme:
   name: mkdocs
-  language: es
+  locale: es
 nav:
   - Inicio: index.md
   - Usar Contento:
       - Abrir la aplicación: usar/abrir-la-aplicacion.md
   - Operar el servicio:
       - Arrancar el servicio: operar/arrancar-el-servicio.md
+  - Para el equipo:
+      - Verificación automática: equipo/verificacion.md

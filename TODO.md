@@ -16,6 +16,8 @@
 
 ## General
 
+- [ ] docs/tasks/008-pulir-documentacion-mkdocs.md — Pulir la documentación de producto en MkDocs
+
 ## Hito 1: Fundación del backoffice y cuentas
 <!-- épica: docs/epics/001-fundacion.md -->
 

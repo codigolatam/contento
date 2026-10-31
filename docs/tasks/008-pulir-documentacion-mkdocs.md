@@ -44,7 +44,7 @@ Hacer que la documentación de producto sea útil para quien la lee: en español
 
 ## Notas
 
-- El pie «Documentation built with MkDocs» viene de la plantilla del tema. Si no se puede traducir con la configuración, se evalúa un tema alternativo o se deja como excepción documentada.
+- Con `locale: es` y `babel` instalado, el tema carga sus traducciones. La navegación, el buscador y el pie salen en español en todas las páginas.
 
 ## Revisión
 

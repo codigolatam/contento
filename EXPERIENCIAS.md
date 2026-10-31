@@ -6,3 +6,24 @@
 
      Las entradas nunca se editan ni se borran. Gestionado por el skill
      destilar-lecciones. -->
+
+- Id: 20261030T230831
+  Tarea: docs/tasks/001-scaffold.md
+  Esperado: El código, los identificadores, los nombres de las pruebas y los mensajes de error están en inglés.
+  Obtenido: Los mensajes de error y los nombres de las pruebas estaban en español.
+  Corrección: Usar inglés para el código, incluidos los nombres de las pruebas y los mensajes de error.
+  Estado: consolidada
+
+- Id: 20261030T230832
+  Tarea: docs/tasks/001-scaffold.md
+  Esperado: Las pruebas se revisan contra ZOMBIE y las buenas prácticas antes de presentarse.
+  Obtenido: Las pruebas cubrían parcialmente ZOMBIE, tenían aserciones débiles y dejaban pasar un PORT inválido.
+  Corrección: Revisar las pruebas contra ZOMBIE y las buenas prácticas antes de dar la tarea por lista.
+  Estado: consolidada
+
+- Id: 20261030T230833
+  Tarea: docs/tasks/001-scaffold.md
+  Esperado: El README describe el estado del repositorio sin referencias a tareas.
+  Obtenido: La nota de estado del README mencionaba la tarea 001.
+  Corrección: No mencionar tareas en la documentación de producto; la trazabilidad vive en el índice y en el archivo de la tarea.
+  Estado: consolidada

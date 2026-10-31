@@ -8,6 +8,15 @@ Su diferencia estructural: está diseñado para que el trabajo lo ejecuten **age
 
 > **Estado:** fase fundacional. El repositorio contiene el scaffold del servicio y de la aplicación web.
 
+## Documentación de producto
+
+La documentación para quien usa Contento y para quien lo opera está en `product-docs/`, compilada con MkDocs:
+
+```sh
+uv venv .venv-docs && uv pip install --python .venv-docs/bin/python -r requirements-docs.txt
+.venv-docs/bin/mkdocs serve
+```
+
 ## Características
 
 - **Pipeline editorial:** `idea → lista → en redacción → en revisión → publicado`, en kanban interactivo y configurable por workspace.

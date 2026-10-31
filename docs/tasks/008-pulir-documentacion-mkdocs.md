@@ -2,7 +2,7 @@
 
 ## Estado
 
-[ ] Pendiente
+[x] Completada
 
 ## Tipo
 
@@ -44,10 +44,10 @@ Hacer que la documentación de producto sea útil para quien la lee: en español
 
 ## Notas
 
-- El pie «Documentation built with MkDocs» viene de la plantilla del tema. Si no se puede traducir con la configuración, se evalúa un tema alternativo o se deja como excepción documentada.
+- Con `locale: es` y `babel` instalado, el tema carga sus traducciones. La navegación, el buscador y el pie salen en español en todas las páginas.
 
 ## Revisión
 
-- Subagente: [fecha] — [Aprueba | Solicita cambios]
-- Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Subagente: sin revisión independiente: tarea de documentación, fuera del sub-flujo de desarrollo.
+- Usuario (ejecución): 2026-10-30 — Aprueba
+- Usuario (cierre): 2026-10-30 — Aprueba

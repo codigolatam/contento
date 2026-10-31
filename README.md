@@ -6,7 +6,16 @@ Contento gestiona el **trabajo** de producir contenido: planificar, encuadrar, r
 
 Su diferencia estructural: está diseñado para que el trabajo lo ejecuten **agentes**, no solo humanos. El servidor MCP es el contrato programático oficial del producto, no una integración secundaria.
 
-> **Estado:** fase fundacional. Este repositorio aún no contiene código.
+> **Estado:** fase fundacional. El repositorio contiene el scaffold del servicio y de la aplicación web.
+
+## Documentación de producto
+
+La documentación para quien usa Contento y para quien lo opera está en `product-docs/`, compilada con MkDocs:
+
+```sh
+uv venv .venv-docs && uv pip install --python .venv-docs/bin/python -r requirements-docs.txt
+.venv-docs/bin/mkdocs serve
+```
 
 ## Características
 

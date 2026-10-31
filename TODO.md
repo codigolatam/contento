@@ -19,7 +19,7 @@
 ## Hito 1: Fundación del backoffice y cuentas
 <!-- épica: docs/epics/001-fundacion.md -->
 
-- [ ] docs/tasks/001-scaffold.md — Scaffold del servicio y de la aplicación web
+- [x] docs/tasks/001-scaffold.md — Scaffold del servicio y de la aplicación web
 - [ ] docs/tasks/002-persistencia.md — Infraestructura de persistencia
 - [ ] docs/tasks/003-autenticacion.md — Autenticación con better-auth
 - [ ] docs/tasks/004-tenancy.md — Workspaces, roles e invitaciones

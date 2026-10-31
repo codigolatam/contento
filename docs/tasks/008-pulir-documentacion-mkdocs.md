@@ -50,4 +50,4 @@ Hacer que la documentación de producto sea útil para quien la lee: en español
 
 - Subagente: sin revisión independiente: tarea de documentación, fuera del sub-flujo de desarrollo.
 - Usuario (ejecución): 2026-10-30 — Aprueba
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (cierre): 2026-10-30 — Aprueba

@@ -2,7 +2,7 @@
 
 ## Estado
 
-[~] En progreso
+[r] En revisión
 
 ## Tipo
 
@@ -99,6 +99,6 @@ Ninguna expectativa tiene caso de uso propio, porque el PRD no describe la persi
 
 ## Revisión
 
-- Subagente: 2026-10-31 — Solicita cambios en la quinta revisión (solo texto de Notas y suite); corregidos. Pendiente de confirmación por una revisión nueva.
+- Subagente: 2026-10-31 — Aprueba
 - Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

@@ -12,6 +12,7 @@ export const migrationsFolder = fileURLToPath(new URL("../../drizzle", import.me
 export const createDatabase = (
   connectionString = process.env.DATABASE_URL,
   folder = migrationsFolder,
+  dataDir?: string,
 ) => {
   if (connectionString) {
     const client = new Pool({ connectionString });
@@ -24,7 +25,7 @@ export const createDatabase = (
     };
   }
 
-  const client = new PGlite();
+  const client = new PGlite(dataDir);
   const db = drizzlePglite({ client, schema });
   return {
     db,

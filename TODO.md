@@ -23,7 +23,7 @@
 
 - [x] docs/tasks/001-scaffold.md — Scaffold del servicio y de la aplicación web
 - [x] docs/tasks/002-persistencia.md — Infraestructura de persistencia
-- [ ] docs/tasks/003-autenticacion.md — Autenticación con better-auth
+- [r] docs/tasks/003-autenticacion.md — Autenticación con better-auth
 - [ ] docs/tasks/004-tenancy.md — Workspaces, roles e invitaciones
 - [ ] docs/tasks/005-api-keys.md — Claves de API por agente
 - [ ] docs/tasks/006-registro-eventos.md — Registro de eventos del dominio

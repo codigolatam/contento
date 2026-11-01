@@ -22,7 +22,7 @@
 <!-- épica: docs/epics/001-fundacion.md -->
 
 - [x] docs/tasks/001-scaffold.md — Scaffold del servicio y de la aplicación web
-- [r] docs/tasks/002-persistencia.md — Infraestructura de persistencia
+- [x] docs/tasks/002-persistencia.md — Infraestructura de persistencia
 - [ ] docs/tasks/003-autenticacion.md — Autenticación con better-auth
 - [ ] docs/tasks/004-tenancy.md — Workspaces, roles e invitaciones
 - [ ] docs/tasks/005-api-keys.md — Claves de API por agente

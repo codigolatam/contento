@@ -11,8 +11,8 @@ Notas de lecciones aprendidas de las correcciones del usuario. Cada tema es un a
   - Disparadores: src/, *.test., mensajes de error
   - Resumen: El código, las pruebas y los mensajes de error van en inglés.
 - pruebas.md
-  - Disparadores: *.test., vitest.config
-  - Resumen: Las pruebas se diseñan con ZOMBIE y se revisan antes de presentarse.
+  - Disparadores: *.test., vitest.config, DATABASE_URL, Docker, servicios externos
+  - Resumen: Las pruebas se diseñan con ZOMBIE y se revisan antes de presentarse. Lo que depende de servicios externos se verifica manualmente, fuera de la suite.
 - documentacion-de-producto.md
   - Disparadores: README.md, product-docs/
   - Resumen: La documentación de producto no menciona tareas.

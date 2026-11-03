@@ -9,6 +9,7 @@ nav:
   - Inicio: index.md
   - Usar Contento:
       - Abrir la aplicación: usar/abrir-la-aplicacion.md
+      - Crear una cuenta y entrar: usar/crear-una-cuenta.md
   - Operar el servicio:
       - Arrancar el servicio: operar/arrancar-el-servicio.md
   - Para el equipo:

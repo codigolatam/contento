@@ -2,7 +2,7 @@
 
 ## Estado
 
-[r] En revisión
+[x] Completada
 
 ## Tipo
 
@@ -108,5 +108,5 @@ Cada expectativa se ancla a CU-1 del PRD o a un criterio de la tarea.
 ## Revisión
 
 - Subagente: 2026-11-01 — Aprueba
-- Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (ejecución): 2026-11-01 — Aprueba
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

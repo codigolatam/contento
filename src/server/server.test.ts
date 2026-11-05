@@ -1,3 +1,7 @@
+import { existsSync } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const serveMock = vi.hoisted(() => vi.fn());
@@ -6,16 +10,28 @@ vi.mock("@hono/node-server", () => ({ serve: serveMock }));
 
 const loadServer = () => import("./server");
 
+const repoDataDir = join(import.meta.dirname, "../../.pglite-data");
+
 describe("server entrypoint", () => {
-  beforeEach(() => {
+  let dataDir: string;
+  let testCreatedRepoDataDir = false;
+
+  beforeEach(async () => {
     delete process.env.PORT;
     delete process.env.DATABASE_URL;
+    dataDir = await mkdtemp(join(tmpdir(), "contento-pglite-"));
+    vi.stubEnv("PGLITE_DATA_DIR", dataDir);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.unstubAllEnvs();
     vi.resetModules();
     serveMock.mockReset();
+    await rm(dataDir, { recursive: true, force: true });
+    if (testCreatedRepoDataDir) {
+      await rm(repoDataDir, { recursive: true, force: true });
+      testCreatedRepoDataDir = false;
+    }
   });
 
   it("listens on port 3000 when PORT is not set", async () => {
@@ -56,5 +72,15 @@ describe("server entrypoint", () => {
     await loadServer();
 
     expect(serveMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses the repo data directory when PGLITE_DATA_DIR is not set", async () => {
+    vi.unstubAllEnvs();
+    testCreatedRepoDataDir = !existsSync(repoDataDir);
+
+    await loadServer();
+
+    expect(serveMock).toHaveBeenCalledTimes(1);
+    expect(existsSync(repoDataDir)).toBe(true);
   });
 });

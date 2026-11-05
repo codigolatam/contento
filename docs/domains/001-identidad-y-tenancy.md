@@ -6,11 +6,11 @@ Identificar a las personas y a los agentes que trabajan en Contento y delimitar 
 
 ## Referencia del modelo
 
-Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion.md`. Ninguna entidad está implementada todavía; las anclas se completan al cerrar cada tarea de la épica 001.
+Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion.md`. Las cuentas ya existen en código; el resto de las entidades se implementa en las tareas 004 a 006.
 
 - **Lenguaje ubicuo:**
   - **Cuenta:** persona o agente con identidad propia que accede al sistema con correo y contraseña.
-    - Ancla: pendiente, tarea `docs/tasks/003-autenticacion.md`
+    - Ancla: `src/server/schema.ts` (tablas `user`, `session`, `account` y `verification`, generadas por el CLI), `src/server/auth.ts` (`createAuth`, `mountAuth`)
   - **Workspace:** frontera de tenant. Agrupa miembros, roles y datos de trabajo.
     - Ancla: pendiente, tarea `docs/tasks/004-tenancy.md`
   - **Workspace personal:** workspace que se crea al registrar una cuenta. Su propietario es la cuenta, lleva su nombre, puede renombrarse y no puede eliminarse.
@@ -25,7 +25,7 @@ Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion
     - Ancla: pendiente, tarea `docs/tasks/006-registro-eventos.md`
 - **Entidades / estado:**
   - Cuenta, Workspace, Miembro (cuenta + rol en un workspace), Invitación (pendiente, aceptada, caducada), Clave de agente, Evento.
-  - Ancla: pendiente, tareas 003 a 006.
+  - Ancla: `src/server/schema.ts` para la cuenta; pendiente para el resto, tareas 004 a 006.
 - **Invariantes:**
   - Toda cuenta tiene exactamente un workspace personal, creado dentro del mismo registro. Si la creación falla, el registro no se completa.
     - Ancla: pendiente, tarea `docs/tasks/004-tenancy.md`
@@ -41,10 +41,11 @@ Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion
     - Ancla: pendiente, tarea `docs/tasks/006-registro-eventos.md`
 - **Operaciones:**
   - Registrar cuenta (crea su workspace personal), acceder, cerrar sesión.
+    - Ancla: `src/server/auth.ts` (`mountAuth`, rutas `/api/auth/*`), verificado en `src/server/auth.test.ts`. El workspace personal llega con la tarea 004.
   - Crear workspace, invitar miembro, aceptar invitación, asignar rol.
   - Crear, verificar y eliminar clave de agente.
   - Registrar evento.
-  - Ancla: pendiente, tareas 003 a 006.
+  - Ancla: pendiente, tareas 004 a 006.
 
 ## Explicación del dominio
 
@@ -55,11 +56,11 @@ El dominio responde a quién actúa y en qué espacio. Todo lo demás de Content
   - Fuera: contenido editorial (piezas, series, briefs, borradores), que pertenece a los dominios de las propuestas 002 y 003; el servidor MCP, que es la propuesta 004; la infraestructura de persistencia, que es la tarea 002 y no define modelo.
   - Relaciones: el dominio editorial consulta el rol del miembro para autorizar sus operaciones. El registro de eventos recibe hechos de todos los dominios, pero no los interpreta.
 - **Decisiones relevantes:**
-  - Ninguna registrada en `docs/decisions/`. El stack (Hono, Drizzle, better-auth y un único esquema `pg-core`) está fijado en la propuesta 001 y en `docs/research/2026-10-stack-fundacion.md`.
+  - `docs/decisions/D001-stack-componible.md` — Hono, Drizzle, better-auth y React.
+  - `docs/decisions/D002-pglite-desarrollo-postgres-produccion.md` — un único esquema `pg-core`, PGlite en desarrollo y pruebas, Postgres en producción.
 
 ## Estado de salud
 
-- Última revisión: 2026-10-30
+- Última revisión: 2026-11-01
 - Divergencias conocidas:
-  - El modelo está declarado, pero ninguna de sus entidades existe en el código. Las anclas quedan pendientes hasta las tareas 003 a 006.
-  - La decisión del stack no está registrada como decisión en `docs/decisions/`; se evaluará al cerrar la épica 001.
+  - Las cuentas existen en código (`user`, `session`, `account`, `verification` en `src/server/schema.ts`; `createAuth` y `mountAuth` en `src/server/auth.ts`). El resto de entidades del modelo sigue pendiente hasta las tareas 004 a 006.

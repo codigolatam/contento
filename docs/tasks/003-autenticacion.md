@@ -109,4 +109,4 @@ Cada expectativa se ancla a CU-1 del PRD o a un criterio de la tarea.
 
 - Subagente: 2026-11-01 — Aprueba
 - Usuario (ejecución): 2026-11-01 — Aprueba
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (cierre): 2026-11-01 — Aprueba

@@ -1,17 +1,132 @@
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth, getCurrentAdapter } from "better-auth";
+import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { organization } from "better-auth/plugins";
+import { createAccessControl } from "better-auth/plugins/access";
+import { defaultRoles, defaultStatements } from "better-auth/plugins/organization/access";
 import type { Hono } from "hono";
 import { createDatabase } from "./database";
 
 type Database = ReturnType<typeof createDatabase>;
+type Adapter = Awaited<ReturnType<typeof getCurrentAdapter>>;
 
-export const createAuth = (database: Database) =>
-  betterAuth({
+const ac = createAccessControl(defaultStatements);
+
+const autorPermissions = {
+  organization: [],
+  member: [],
+  invitation: [],
+  team: [],
+  ac: ["read"],
+} as const;
+
+const editorPermissions = {
+  organization: [],
+  member: [],
+  invitation: [],
+  team: [],
+  ac: ["read"],
+} as const;
+
+const roles = {
+  ...defaultRoles,
+  autor: ac.newRole(autorPermissions),
+  editor: ac.newRole(editorPermissions),
+};
+
+export const createPersonalWorkspace = async (adapter: Adapter, userId: string) => {
+  const user = await adapter.findOne<{ name: string }>({
+    model: "user",
+    where: [{ field: "id", value: userId }],
+  });
+  if (!user) return;
+  const memberships = await adapter.findMany<{ organizationId: string }>({
+    model: "member",
+    where: [{ field: "userId", value: userId }],
+  });
+  for (const membership of memberships) {
+    const personalWorkspace = await adapter.findOne({
+      model: "organization",
+      where: [
+        { field: "id", value: membership.organizationId },
+        { field: "personal", value: true },
+      ],
+    });
+    if (personalWorkspace) return;
+  }
+  const workspace = await adapter.create<
+    { name: string; slug: string; personal: boolean; createdAt: Date },
+    { id: string }
+  >({
+    model: "organization",
+    data: {
+      name: user.name,
+      slug: `personal-${userId}`,
+      personal: true,
+      createdAt: new Date(),
+    },
+  });
+  await adapter.create({
+    model: "member",
+    data: {
+      organizationId: workspace.id,
+      userId,
+      role: "owner",
+      createdAt: new Date(),
+    },
+  });
+};
+
+export const createAuth = (
+  database: Database,
+  overrides?: { createPersonalWorkspace?: (adapter: Adapter, userId: string) => Promise<void> },
+) => {
+  const options: BetterAuthOptions = {
     baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
     secret: process.env.BETTER_AUTH_SECRET,
-    database: drizzleAdapter(database.db, { provider: "pg" }),
+    database: drizzleAdapter(database.db, { provider: "pg", transaction: true }),
     emailAndPassword: { enabled: true },
-  });
+    plugins: [
+      organization({
+        ac,
+        roles,
+        schema: {
+          organization: {
+            additionalFields: {
+              personal: { type: "boolean", required: true, defaultValue: false, input: false },
+            },
+          },
+        },
+        organizationHooks: {
+          beforeDeleteOrganization: ({ organization: workspace }) =>
+            workspace.personal === true
+              ? Promise.reject(
+                  new APIError("FORBIDDEN", {
+                    message: "personal workspaces cannot be deleted",
+                  }),
+                )
+              : Promise.resolve(),
+        },
+      }),
+    ],
+    databaseHooks: {
+      account: {
+        create: {
+          before: async (account) => {
+            const { adapter: baseAdapter } = await instance.$context;
+            const adapter = await getCurrentAdapter(baseAdapter);
+            await (overrides?.createPersonalWorkspace ?? createPersonalWorkspace)(
+              adapter,
+              account.userId,
+            );
+          },
+        },
+      },
+    },
+  };
+  const instance = betterAuth(options);
+  return instance;
+};
 
 export const auth = createAuth(createDatabase("", undefined, undefined));
 

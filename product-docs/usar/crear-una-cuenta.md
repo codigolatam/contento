@@ -14,6 +14,8 @@ curl -X POST http://localhost:3000/api/auth/sign-up/email \
 
 El servicio responde con tus datos y una cookie de sesión. Si el correo ya está registrado o falta algún campo, la petición se rechaza.
 
+La cuenta nace con un workspace personal que lleva tu nombre y del que eres propietario. Más detalles en [Trabajar en un workspace](trabajar-en-un-workspace.md).
+
 ## Entrar
 
 Envía una petición `POST` a `/api/auth/sign-in/email` con tu correo y tu contraseña:

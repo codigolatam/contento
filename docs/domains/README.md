@@ -4,4 +4,4 @@
 
 | Número | Dominio | Documento | Estado |
 |---|---|---|---|
-| 001 | Identidad y tenancy | `001-identidad-y-tenancy.md` | Declarado; pendiente de implementación |
+| 001 | Identidad y tenancy | `001-identidad-y-tenancy.md` | Parcialmente implementado; claves de agente y eventos pendientes |

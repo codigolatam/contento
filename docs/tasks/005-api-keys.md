@@ -76,7 +76,7 @@ Dar identidad propia a cada agente mediante claves de API de better-auth, con pe
   - Aporta: las claves quedan ligadas al workspace (`referenceId` es el `organizationId`: claves de organización, no de usuario) y nacen los endpoints `/api/auth/api-key/*`.
   - Contexto: `verify` toma la clave en el cuerpo sin sesión —es como el agente se autentica—; `create` exige `organizationId` y membresía con el permiso.
 - [x] Regenerar `schema.ts` con `npx auth generate` y emitir la migración con `drizzle-kit generate`.
-  - Aporta: la tabla `apikey` con FK a `organization` sin escribir el esquema a mano.
+  - Aporta: la tabla `apikey` ligada a la organización por `referenceId` sin escribir el esquema a mano.
   - Contexto: la `0001` ya está fusionada —la migración nueva es la `0002` de la serie.
 - [x] Verificar el flujo completo contra Postgres 15 real durante la tarea; no queda en la suite.
   - Aporta: el criterio de producción (D002) sin acoplar la suite.
@@ -98,6 +98,9 @@ Dar identidad propia a cada agente mediante claves de API de better-auth, con pe
 - `admin` y `member` se redefinieron con `ac.newRole` en lugar de reusar `defaultRoles`. Motivo: los roles por defecto se construyeron con el `ac` original, que no declara el recurso `apiKey`, y `authorize` rechaza recursos que el rol no conoce. Decisión: replicar los statements de `adminAc`/`memberAc` añadiendo `apiKey` (completo en `admin`, vacío en `member`), como anticipó el plan.
 - Los permisos de la clave son server-only: `api-key/create` rechaza `permissions` (además de `refill`, `rateLimit*` y `remaining`) en peticiones de cliente con `SERVER_ONLY_PROPERTY`; solo `auth.api.createApiKey` los acepta. Motivo: es un contrato del plugin, no configurable. Decisión: la expectativa «cada clave lleva sus propios permisos» se cubre creando la clave con permisos vía `auth.api` y comprobando que `verify` los devuelve; la suite además fija que el HTTP los rechaza.
 - `api-key/verify` no se enruta por HTTP: el endpoint está marcado `SERVER_ONLY` y el router lo omite; la única vía es `auth.api.verifyApiKey`, que es la que usará el servidor MCP. La suite lo fija: el POST responde error y `verify` funciona sin sesión.
+- Se desactivó el rate limit de verificación (`rateLimit: { enabled: false }`). Motivo: el plugin aplica por defecto 10 verificaciones por 24 h a cada clave —detectado en la revisión—, incompatible con una credencial de agente que se verifica en cada petición; `rateLimit*` además es server-only, así que la decisión vive en la configuración. Decisión: desactivarlo; si hace falta límite, se reintroduce como configuración deliberada.
+- El hook de borrado elimina las claves del workspace. Motivo: `apikey.referenceId` es polimórfico (usuario u organización), así que la tabla no puede tener FK y la revisión detectó que borrar un workspace dejaba claves huérfanas que seguían verificando. Decisión: `beforeDeleteOrganization` borra las claves del workspace en la misma operación —la semántica de cascada que daría la FK si existiera—; el personal sigue protegido antes de cualquier borrado.
+- El CLI `auth` también quedó fijado a `1.7.14` tras la revisión, por coherencia con la pila fijada.
 
 ## Verificación manual
 

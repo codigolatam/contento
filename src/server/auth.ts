@@ -124,17 +124,20 @@ export const createAuth = (
           },
         },
         organizationHooks: {
-          beforeDeleteOrganization: ({ organization: workspace }) =>
-            workspace.personal === true
-              ? Promise.reject(
-                  new APIError("FORBIDDEN", {
-                    message: "personal workspaces cannot be deleted",
-                  }),
-                )
-              : Promise.resolve(),
+          beforeDeleteOrganization: async ({ organization: workspace }, ctx) => {
+            if (workspace.personal === true) {
+              throw new APIError("FORBIDDEN", {
+                message: "personal workspaces cannot be deleted",
+              });
+            }
+            await ctx?.context.adapter.deleteMany({
+              model: "apikey",
+              where: [{ field: "referenceId", value: workspace.id }],
+            });
+          },
         },
       }),
-      apiKey({ references: "organization" }),
+      apiKey({ references: "organization", rateLimit: { enabled: false } }),
     ],
     databaseHooks: {
       account: {

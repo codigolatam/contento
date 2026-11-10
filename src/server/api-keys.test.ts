@@ -56,11 +56,15 @@ const listKeys = (app: Hono, cookie: string, organizationId: string) =>
 const deleteKey = (app: Hono, cookie: string, keyId: string) =>
   jsonPost(app, "/api/auth/api-key/delete", { keyId }, cookie);
 
+const deleteWorkspace = (app: Hono, cookie: string, organizationId: string) =>
+  jsonPost(app, "/api/auth/organization/delete", { organizationId }, cookie);
+
 interface CreatedKey {
   id: string;
   key: string;
   referenceId: string;
   name: string | null;
+  rateLimitEnabled: boolean;
 }
 
 interface VerifyResult {
@@ -164,9 +168,13 @@ describe("api keys", () => {
     });
     expect(apiKey.referenceId).toBe(workspaceId);
     expect(apiKey.key.length).toBeGreaterThan(0);
+    expect(apiKey.rateLimitEnabled).toBe(false);
 
+    for (let i = 0; i < 12; i += 1) {
+      const result = await verifyKey(authInstance, apiKey.key);
+      expect(result.valid).toBe(true);
+    }
     const result = await verifyKey(authInstance, apiKey.key);
-    expect(result.valid).toBe(true);
     expect(result.key?.referenceId).toBe(workspaceId);
     expect(result.key?.permissions).toEqual({ content: ["read"] });
   });
@@ -229,7 +237,6 @@ describe("api keys", () => {
 
   it("rejects creating a key for a workspace the user does not belong to", async () => {
     const { workspaceId } = await ownerWorkspace(app, owner);
-    await ownerWorkspace(app, autor);
 
     const foreign = await createKey(
       app,
@@ -265,5 +272,22 @@ describe("api keys", () => {
     const result = await verifyKey(authInstance, apiKey.key);
     expect(result.valid).toBe(true);
     expect(result.key?.referenceId).toBe(editorial.id);
+  });
+
+  it("invalidates the keys of a workspace that gets deleted", async () => {
+    const { cookie } = await ownerWorkspace(app, owner);
+    const editorial = (await (
+      await createWorkspace(app, cookie, "Editorial", "editorial")
+    ).json()) as { id: string };
+
+    const created = await createKey(app, cookie, editorial.id, "editorial-agent");
+    expect(created.ok).toBe(true);
+    const apiKey = (await created.json()) as CreatedKey;
+
+    const deleted = await deleteWorkspace(app, cookie, editorial.id);
+    expect(deleted.ok).toBe(true);
+
+    const result = await verifyKey(authInstance, apiKey.key);
+    expect(result.valid).toBe(false);
   });
 });

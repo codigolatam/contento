@@ -383,6 +383,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "personal": {
           "name": "personal",
           "type": "boolean",

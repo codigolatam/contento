@@ -105,7 +105,6 @@ Establecer el workspace como frontera de tenant mediante el plugin de organizaci
 - `personal` se declara como `additionalField` con `input: false` para que la API no pueda crear ni convertir workspaces personales; el borrado se bloquea en `organizationHooks.beforeDeleteOrganization`.
 - No se envía correo de invitación (no hay mailer); el envío queda pendiente por decisión del usuario. `invitationExpiresIn` queda en el valor por defecto del plugin (48 h); la caducidad se prueba actualizando `expires_at` directamente.
 - `createAuth` acepta `overrides` con `createPersonalWorkspace` inyectable para probar el rollback con un fallo real.
-- `organization.metadata` se elimina del esquema generado por decisión del usuario: `schema.ts` quedó editado a mano y una regeneración con `npx auth generate` volvería a añadirlo, así que habría que quitarlo de nuevo. Como el plugin declara `metadata` como campo del modelo `organization` y la validación de esquema en tiempo de ejecución exige su presencia, `advanced.database.validateSchema: false` desactiva esa validación para todo el esquema. Enviar `metadata` por la API de organización sigue fallando en voz alta (`checkMissingFields` del adaptador) aunque el campo figure en el contrato OpenAPI.
 
 ## Verificación manual
 

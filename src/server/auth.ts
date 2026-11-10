@@ -85,9 +85,6 @@ export const createAuth = (
     baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
     secret: process.env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(database.db, { provider: "pg", transaction: true }),
-    advanced: {
-      database: { validateSchema: false },
-    },
     emailAndPassword: { enabled: true },
     plugins: [
       organization({

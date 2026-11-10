@@ -2,7 +2,7 @@
 
 ## Estado
 
-[r] En revisión
+[x] Completada
 
 ## Tipo
 
@@ -114,5 +114,5 @@ Establecer el workspace como frontera de tenant mediante el plugin de organizaci
 ## Revisión
 
 - Subagente: 2026-11-09 — Aprueba
-- Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (ejecución): 2026-11-09 — Aprueba
+- Usuario (cierre): 2026-11-09 — Aprueba

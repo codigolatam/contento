@@ -10,7 +10,6 @@ nav:
   - Usar Contento:
       - Abrir la aplicación: usar/abrir-la-aplicacion.md
       - Crear una cuenta y entrar: usar/crear-una-cuenta.md
+      - Trabajar en un workspace: usar/trabajar-en-un-workspace.md
   - Operar el servicio:
       - Arrancar el servicio: operar/arrancar-el-servicio.md
-  - Para el equipo:
-      - Verificación automática: equipo/verificacion.md

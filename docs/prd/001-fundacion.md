@@ -13,7 +13,8 @@ Un autor que produce contenido con agentes necesita un espacio donde su trabajo 
 - **CU-1 — Entrar en la aplicación:** un autor se registra con correo y contraseña y accede después.
   - Borde: las credenciales incorrectas se rechazan sin revelar cuál de los dos datos falla.
 - **CU-2 — Crear un workspace adicional:** un usuario autenticado crea un workspace adicional y queda como propietario.
-- **CU-3 — Invitar a un colaborador:** un propietario o administrador invita por correo con rol autor o editor.
+- **CU-3 — Invitar a un colaborador:** un propietario o administrador crea una invitación dirigida a un correo con rol autor o editor; el invitado la acepta al acceder con su cuenta.
+  - Actualización (tarea 004): la invitación no se envía por correo —no hay servicio de correo—, decisión del usuario pendiente; solo la acepta la cuenta del correo invitado.
   - Borde: una invitación caducada no se puede aceptar.
 - **CU-4 — Dar acceso a un agente:** un propietario o administrador crea una clave de API para el workspace con sus permisos.
   - Borde: una clave eliminada o caducada deja de funcionar.

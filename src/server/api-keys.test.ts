@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Hono } from "hono";
 import { createApp } from "./app";
-import { createAuth, mountAuth } from "./auth";
+import { createAuth, deleteWorkspaceApiKeys, mountAuth } from "./auth";
 import { createDatabase } from "./database";
 
 type Database = ReturnType<typeof createDatabase>;
@@ -289,5 +289,11 @@ describe("api keys", () => {
 
     const result = await verifyKey(authInstance, apiKey.key);
     expect(result.valid).toBe(false);
+  });
+
+  it("fails closed when the delete hook runs without its context", async () => {
+    await expect(deleteWorkspaceApiKeys(undefined, "any-id")).rejects.toThrow(
+      "organization delete hook requires its context",
+    );
   });
 });

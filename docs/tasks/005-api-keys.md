@@ -89,6 +89,8 @@ Dar identidad propia a cada agente mediante claves de API de better-auth, con pe
 - Una clave con `expiresAt` en el pasado no se verifica; una eliminada tampoco. (B, CU-4)
 - `member`, `autor` y `editor` no pueden crear claves; un miembro de otro workspace no puede crear una clave para él. (E, CU-4)
 - Las claves son de la organización: `list` solo devuelve las del workspace indicado; `verify` no requiere sesión. (I, invariante)
+- Una clave verifica sin límite de tasa: el rate limit del plugin queda desactivado. (B, CU-4)
+- Eliminar un workspace invalida sus claves. (B, invariante)
 - Regresión: tipado, linter y pruebas con cobertura del 100 %.
 - Durante la tarea, crear, listar, verificar y eliminar una clave pasan contra Postgres 15 real. Verificación manual, no queda en la suite.
 
@@ -99,7 +101,7 @@ Dar identidad propia a cada agente mediante claves de API de better-auth, con pe
 - Los permisos de la clave son server-only: `api-key/create` rechaza `permissions` (además de `refill`, `rateLimit*` y `remaining`) en peticiones de cliente con `SERVER_ONLY_PROPERTY`; solo `auth.api.createApiKey` los acepta. Motivo: es un contrato del plugin, no configurable. Decisión: la expectativa «cada clave lleva sus propios permisos» se cubre creando la clave con permisos vía `auth.api` y comprobando que `verify` los devuelve; la suite además fija que el HTTP los rechaza.
 - `api-key/verify` no se enruta por HTTP: el endpoint está marcado `SERVER_ONLY` y el router lo omite; la única vía es `auth.api.verifyApiKey`, que es la que usará el servidor MCP. La suite lo fija: el POST responde error y `verify` funciona sin sesión.
 - Se desactivó el rate limit de verificación (`rateLimit: { enabled: false }`). Motivo: el plugin aplica por defecto 10 verificaciones por 24 h a cada clave —detectado en la revisión—, incompatible con una credencial de agente que se verifica en cada petición; `rateLimit*` además es server-only, así que la decisión vive en la configuración. Decisión: desactivarlo; si hace falta límite, se reintroduce como configuración deliberada.
-- El hook de borrado elimina las claves del workspace. Motivo: `apikey.referenceId` es polimórfico (usuario u organización), así que la tabla no puede tener FK y la revisión detectó que borrar un workspace dejaba claves huérfanas que seguían verificando. Decisión: `beforeDeleteOrganization` borra las claves del workspace en la misma operación —la semántica de cascada que daría la FK si existiera—; el personal sigue protegido antes de cualquier borrado.
+- El hook de borrado elimina las claves del workspace. Motivo: `apikey.referenceId` es polimórfico (usuario u organización), así que la tabla no puede tener FK y la revisión detectó que borrar un workspace dejaba claves huérfanas que seguían verificando. Decisión: `beforeDeleteOrganization` borra las claves del workspace en la misma petición, antes de que la organización se elimine —la semántica de cascada que daría la FK si existiera—; el personal sigue protegido antes de cualquier borrado y la cascada falla cerrado si el hook llega sin contexto.
 - El CLI `auth` también quedó fijado a `1.7.14` tras la revisión, por coherencia con la pila fijada.
 
 ## Verificación manual

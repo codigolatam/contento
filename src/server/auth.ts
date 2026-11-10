@@ -1,5 +1,6 @@
 import { APIError, betterAuth, getCurrentAdapter } from "better-auth";
 import type { BetterAuthOptions } from "better-auth";
+import type { GenericEndpointContext } from "@better-auth/core";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import { apiKey } from "@better-auth/api-key";
@@ -103,6 +104,21 @@ export const createPersonalWorkspace = async (adapter: Adapter, userId: string) 
   });
 };
 
+export const deleteWorkspaceApiKeys = async (
+  ctx: GenericEndpointContext | undefined,
+  organizationId: string,
+) => {
+  if (!ctx) {
+    throw new APIError("INTERNAL_SERVER_ERROR", {
+      message: "organization delete hook requires its context",
+    });
+  }
+  await ctx.context.adapter.deleteMany({
+    model: "apikey",
+    where: [{ field: "referenceId", value: organizationId }],
+  });
+};
+
 export const createAuth = (
   database: Database,
   overrides?: { createPersonalWorkspace?: (adapter: Adapter, userId: string) => Promise<void> },
@@ -130,10 +146,7 @@ export const createAuth = (
                 message: "personal workspaces cannot be deleted",
               });
             }
-            await ctx?.context.adapter.deleteMany({
-              model: "apikey",
-              where: [{ field: "referenceId", value: workspace.id }],
-            });
+            await deleteWorkspaceApiKeys(ctx, workspace.id);
           },
         },
       }),

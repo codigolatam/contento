@@ -105,6 +105,7 @@ Establecer el workspace como frontera de tenant mediante el plugin de organizaci
 - `personal` se declara como `additionalField` con `input: false` para que la API no pueda crear ni convertir workspaces personales; el borrado se bloquea en `organizationHooks.beforeDeleteOrganization`.
 - No se envía correo de invitación (no hay mailer); el envío queda pendiente por decisión del usuario. `invitationExpiresIn` queda en el valor por defecto del plugin (48 h); la caducidad se prueba actualizando `expires_at` directamente.
 - `createAuth` acepta `overrides` con `createPersonalWorkspace` inyectable para probar el rollback con un fallo real.
+- `organization.metadata` se mantiene aunque no tiene uso: se evaluó eliminarla por petición del usuario, pero el plugin la declara campo núcleo del modelo `organization` y su validación de esquema en tiempo de ejecución exige la columna —quitarla obligaba a `advanced.database.validateSchema: false`, que desactiva la comprobación para todo el esquema—, así que el usuario decidió conservarla (commit revertido).
 
 ## Verificación manual
 

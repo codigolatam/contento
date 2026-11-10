@@ -2,6 +2,7 @@ import { APIError, betterAuth, getCurrentAdapter } from "better-auth";
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { apiKey } from "@better-auth/api-key";
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultRoles, defaultStatements } from "better-auth/plugins/organization/access";
 import type { Hono } from "hono";
@@ -10,7 +11,28 @@ import { createDatabase } from "./database";
 type Database = ReturnType<typeof createDatabase>;
 type Adapter = Awaited<ReturnType<typeof getCurrentAdapter>>;
 
-const ac = createAccessControl(defaultStatements);
+const ac = createAccessControl({
+  ...defaultStatements,
+  apiKey: ["create", "read", "update", "delete"],
+} as const);
+
+const adminPermissions = {
+  organization: ["update"],
+  member: ["create", "update", "delete"],
+  invitation: ["create", "cancel"],
+  team: ["create", "update", "delete"],
+  ac: ["create", "read", "update", "delete"],
+  apiKey: ["create", "read", "update", "delete"],
+} as const;
+
+const memberPermissions = {
+  organization: [],
+  member: [],
+  invitation: [],
+  team: [],
+  ac: ["read"],
+  apiKey: [],
+} as const;
 
 const autorPermissions = {
   organization: [],
@@ -18,6 +40,7 @@ const autorPermissions = {
   invitation: [],
   team: [],
   ac: ["read"],
+  apiKey: [],
 } as const;
 
 const editorPermissions = {
@@ -26,10 +49,13 @@ const editorPermissions = {
   invitation: [],
   team: [],
   ac: ["read"],
+  apiKey: [],
 } as const;
 
 const roles = {
   ...defaultRoles,
+  admin: ac.newRole(adminPermissions),
+  member: ac.newRole(memberPermissions),
   autor: ac.newRole(autorPermissions),
   editor: ac.newRole(editorPermissions),
 };
@@ -108,6 +134,7 @@ export const createAuth = (
               : Promise.resolve(),
         },
       }),
+      apiKey({ references: "organization" }),
     ],
     databaseHooks: {
       account: {

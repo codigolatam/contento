@@ -23,7 +23,6 @@ CREATE TABLE "organization" (
 	"slug" text NOT NULL,
 	"logo" text,
 	"created_at" timestamp NOT NULL,
-	"metadata" text,
 	"personal" boolean DEFAULT false NOT NULL,
 	CONSTRAINT "organization_slug_unique" UNIQUE("slug")
 );

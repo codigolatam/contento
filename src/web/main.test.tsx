@@ -32,7 +32,7 @@ describe("main entry", () => {
 
     expect(mountedRoots).toHaveLength(1);
     const heading = await screen.findByRole("heading", { level: 1 });
-    expect(heading.textContent).toBe("Contento");
+    expect(heading.textContent).toBe("Pipeline");
     expect(document.getElementById("root")?.contains(heading)).toBe(true);
   });
 

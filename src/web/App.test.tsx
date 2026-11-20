@@ -7,9 +7,16 @@ describe("App", () => {
     cleanup();
   });
 
-  it("renders the product name as the top-level heading", () => {
+  it("shows the product name in the header", async () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Contento");
+    expect(await screen.findByText("Contento")).toBeDefined();
+  });
+
+  it("renders the pipeline surface as the landing view", async () => {
+    render(<App />);
+
+    const heading = await screen.findByRole("heading", { level: 1 });
+    expect(heading.textContent).toBe("Pipeline");
   });
 });

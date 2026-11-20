@@ -2,7 +2,7 @@
 
 ## Estado
 
-[r] En revisión
+[x] Completada
 
 ## Tipo
 
@@ -112,5 +112,5 @@ Dar identidad propia a cada agente mediante claves de API de better-auth, con pe
 ## Revisión
 
 - Subagente: 2026-11-10 — Aprueba
-- Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (ejecución): 2026-11-20 — Aprueba
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

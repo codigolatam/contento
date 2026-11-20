@@ -11,6 +11,7 @@ Contento está en su fase fundacional. Hoy puedes:
 - Abrir la página de inicio de la aplicación. → [Abrir la aplicación](usar/abrir-la-aplicacion.md)
 - Crear una cuenta y entrar por la API. → [Crear una cuenta y entrar](usar/crear-una-cuenta.md)
 - Entender tu workspace y cómo invitar a colaboradores. → [Trabajar en un workspace](usar/trabajar-en-un-workspace.md)
+- Crear claves de API para tus agentes. → [Crear claves de API para agentes](usar/crear-claves-de-api.md)
 - Arrancar y comprobar el servicio, si lo operas tú. → [Arrancar el servicio](operar/arrancar-el-servicio.md)
 
 Todavía no hay piezas editoriales. Llegarán con las siguientes etapas del proyecto.

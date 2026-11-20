@@ -9,4 +9,4 @@ y el proyecto se adhiere a [Versionado Semántico](https://semver.org/spec/v2.0.
 
 ### Added
 
-- Fundación del backoffice y cuentas: autenticación por correo y contraseña, workspaces como frontera de tenant con roles `autor` y `editor`, invitaciones por correo que caducan y un workspace personal creado dentro del registro de cada cuenta (docs/epics/001-fundacion.md).
+- Fundación del backoffice y cuentas: autenticación por correo y contraseña, workspaces como frontera de tenant con roles `autor` y `editor`, invitaciones por correo que caducan, un workspace personal creado dentro del registro de cada cuenta y claves de API por workspace que dan identidad propia a cada agente y se eliminan con el workspace (docs/epics/001-fundacion.md).

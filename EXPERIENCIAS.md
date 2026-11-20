@@ -34,3 +34,10 @@
   Obtenido: La propuesta incluía una prueba contra Postgres real guardada en el repositorio.
   Corrección: Las verificaciones que dependen de servicios externos se ejecutan manualmente durante la tarea y su resultado se registra en el archivo, sin quedar en la suite.
   Estado: consolidada
+
+- Id: 20261120T101200
+  Tarea: docs/tasks/007-navegacion.md
+  Esperado: Los valores estéticos se razonan por la proporción real del contenido y se validan con evidencia renderizada.
+  Obtenido: Se propusieron valores convencionales de partida (sidebar 240px, breakpoint 640px, indicador con box-shadow) que el usuario juzgó subóptimos al verlos renderizados.
+  Corrección: Ante decisiones visuales, cuestionar los defaults convencionales contra el contenido real —la proporción chrome/contenido— y validar con capturas renderizadas antes de darlos por buenos; el usuario decide con evidencia, no con la propuesta en abstracto.
+  Estado: consolidada

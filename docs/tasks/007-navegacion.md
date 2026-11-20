@@ -105,4 +105,4 @@ El PRD pide este esqueleto como entrega del hito 1 (secciones pipeline, series y
 
 - Subagente: 2026-11-20 — Aprueba (revisión inicial solicitó cambios por literales CSS no tokenizados y `GET /api` sin excluir; corregidos y verificados en re-revisión)
 - Usuario (ejecución): 2026-11-20 — Aprueba
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (cierre): 2026-11-20 — Aprueba

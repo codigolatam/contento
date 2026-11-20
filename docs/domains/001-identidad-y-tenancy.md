@@ -6,7 +6,7 @@ Identificar a las personas y a los agentes que trabajan en Contento y delimitar 
 
 ## Referencia del modelo
 
-Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion.md`. Las cuentas, los workspaces, los roles, las invitaciones y la clave de agente ya existen en código; el evento se implementa en la tarea 006.
+Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion.md`. Todos los conceptos del modelo existen en código; el evento es infraestructura operativa sin consumidor todavía.
 
 - **Lenguaje ubicuo:**
   - **Cuenta:** persona o agente con identidad propia que accede al sistema con correo y contraseña.
@@ -22,10 +22,10 @@ Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion
   - **Clave de agente:** credencial de API ligada a un workspace, con permisos propios.
     - Ancla: `src/server/schema.ts` (tabla `apikey`, `referenceId` al workspace), `src/server/auth.ts` (plugin `apiKey` con `references: "organization"`, permisos asignables solo por `auth.api`), `drizzle/0002_api-keys.sql`
   - **Evento:** hecho registrado de solo inserción. Tiene entidad, tipo con formato `entidad.accion`, actor, instante y datos.
-    - Ancla: pendiente, tarea `docs/tasks/006-registro-eventos.md`
+    - Ancla: `src/server/schema.ts` (tabla `event`, `id` `bigserial` como orden de inserción, `data` `jsonb`), `src/server/events.ts` (`recordEvent`, `listEvents`), `drizzle/0003_acoustic_vanisher.sql`
 - **Entidades / estado:**
   - Cuenta, Workspace, Miembro (cuenta + rol en un workspace), Invitación (pendiente, aceptada, caducada), Clave de agente, Evento.
-  - Ancla: `src/server/schema.ts` para la cuenta, el workspace (`organization`), el miembro (`member`), la invitación (`invitation`) y la clave de agente (`apikey`); pendiente para el evento, tarea 006.
+  - Ancla: `src/server/schema.ts` para la cuenta, el workspace (`organization`), el miembro (`member`), la invitación (`invitation`), la clave de agente (`apikey`) y el evento (`event`).
 - **Invariantes:**
   - Toda cuenta tiene exactamente un workspace personal, creado dentro del mismo registro. Si la creación falla, el registro no se completa.
     - Ancla: `src/server/auth.ts` (`createPersonalWorkspace` en `account.create.before`, dentro de la transacción del registro con `transaction: true`), verificado en `src/server/workspaces.test.ts`
@@ -38,7 +38,7 @@ Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion
   - Una clave de agente pertenece a un workspace y solo tiene los permisos concedidos; eliminar el workspace elimina sus claves.
     - Ancla: `src/server/auth.ts` (`apiKey({ references: "organization" })` liga `referenceId` al workspace; `checkOrgApiKeyPermission` exige membresía y el permiso `apiKey`; `deleteWorkspaceApiKeys` en `organizationHooks.beforeDeleteOrganization` hace la cascada), verificado en `src/server/api-keys.test.ts`
   - Un evento no se edita ni se borra, y su tipo cumple el formato `entidad.accion`.
-    - Ancla: pendiente, tarea `docs/tasks/006-registro-eventos.md`
+    - Ancla: `src/server/events.ts` (la superficie exportada es solo `recordEvent` y `listEvents`; `eventTypePattern` valida el formato —dos segmentos en minúsculas unidos por punto—), verificado en `src/server/events.test.ts`
 - **Operaciones:**
   - Registrar cuenta (crea su workspace personal), acceder, cerrar sesión.
     - Ancla: `src/server/auth.ts` (`mountAuth`, rutas `/api/auth/*`; el workspace personal en `databaseHooks.account.create.before`), verificado en `src/server/auth.test.ts` y `src/server/workspaces.test.ts`.
@@ -46,8 +46,8 @@ Estado: modelo declarado en la propuesta 001 y en el PRD `docs/prd/001-fundacion
     - Ancla: endpoints `/api/auth/organization/*` del plugin, verificado en `src/server/workspaces.test.ts`. Sin envío de correo: la invitación se crea dirigida a un correo y el invitado la acepta autenticado.
   - Crear, listar, verificar y eliminar clave de agente.
     - Ancla: endpoints `/api/auth/api-key/*` del plugin (`verify` no se enruta por HTTP —es server-only— y corre por `auth.api.verifyApiKey`), verificado en `src/server/api-keys.test.ts`.
-  - Registrar evento.
-    - Ancla: pendiente, tarea 006.
+  - Registrar evento y consultar los eventos de una entidad en orden cronológico.
+    - Ancla: `src/server/events.ts` (`recordEvent` —única vía de escritura, acepta el handle transaccional para confirmar evento y cambio juntos—; `listEvents`), verificado en `src/server/events.test.ts`.
 
 ## Explicación del dominio
 
@@ -65,4 +65,4 @@ El dominio responde a quién actúa y en qué espacio. Todo lo demás de Content
 
 - Última revisión: 2026-11-20
 - Divergencias conocidas:
-  - Las cuentas, los workspaces (con el personal y sus roles `autor`/`editor`), las invitaciones y la clave de agente existen en código (`organization`, `member`, `invitation` y `apikey` en `src/server/schema.ts`; plugins `organization` y `apiKey` con sus hooks en `src/server/auth.ts`; verificado en `src/server/workspaces.test.ts` y `src/server/api-keys.test.ts`). El evento sigue pendiente hasta la tarea 006.
+  - Las cuentas, los workspaces (con el personal y sus roles `autor`/`editor`), las invitaciones, la clave de agente y el evento existen en código (`organization`, `member`, `invitation`, `apikey` y `event` en `src/server/schema.ts`; plugins `organization` y `apiKey` con sus hooks en `src/server/auth.ts`; `recordEvent`/`listEvents` en `src/server/events.ts`; verificado en `src/server/workspaces.test.ts`, `src/server/api-keys.test.ts` y `src/server/events.test.ts`). El evento no tiene consumidor todavía —el primero será la propuesta 002, como declara el propio modelo—.

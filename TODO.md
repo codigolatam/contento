@@ -26,7 +26,7 @@
 - [x] docs/tasks/003-autenticacion.md — Autenticación con better-auth
 - [x] docs/tasks/004-tenancy.md — Workspaces, roles e invitaciones
 - [x] docs/tasks/005-api-keys.md — Claves de API por agente
-- [r] docs/tasks/006-registro-eventos.md — Registro de eventos del dominio
+- [x] docs/tasks/006-registro-eventos.md — Registro de eventos del dominio
 - [ ] docs/tasks/007-navegacion.md — Esqueleto de navegación de la aplicación editorial
 
 ## Propuestas en revisión

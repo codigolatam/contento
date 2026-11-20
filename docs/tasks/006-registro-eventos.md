@@ -2,7 +2,7 @@
 
 ## Estado
 
-[r] En revisión
+[x] Completada
 
 ## Tipo
 
@@ -102,5 +102,5 @@ La persistencia es un único esquema `pg-core` (`src/server/schema.ts`) consumid
 ## Revisión
 
 - Subagente: 2026-11-20 — Aprueba
-- Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (ejecución): 2026-11-20 — Aprueba
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

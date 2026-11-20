@@ -113,4 +113,4 @@ Dar identidad propia a cada agente mediante claves de API de better-auth, con pe
 
 - Subagente: 2026-11-10 — Aprueba
 - Usuario (ejecución): 2026-11-20 — Aprueba
-- Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (cierre): 2026-11-20 — Aprueba

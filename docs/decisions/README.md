@@ -16,3 +16,11 @@ Registro de las decisiones de diseño que dan forma al proyecto. Cada decisión 
   - Disparadores: drizzle.config.ts, src/db.ts, drizzle, pglite, postgres, migraciones, esquema
   - Resumen: Un único esquema pg-core: PGlite en desarrollo y tests, Postgres en producción.
   - Estado: Aceptada
+- D003-spa-con-fallback-en-el-servidor.md
+  - Disparadores: src/server/app.ts, src/web/routes.tsx, react-router, fallback, navegación, rutas
+  - Resumen: SPA enrutado por el cliente con react-router; el servidor sirve index.html a las GET de navegación.
+  - Estado: Aceptada
+- D004-estilo-gobernado-por-guia.md
+  - Disparadores: DESIGN.md, src/web/theme.css, src/web/app.css, tokens, variables CSS, guía de estilo
+  - Resumen: Los valores visuales viven en DESIGN.md y se materializan en tokens :root; un literal fuera de ellos es deriva.
+  - Estado: Aceptada

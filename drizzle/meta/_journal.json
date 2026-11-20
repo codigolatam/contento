@@ -22,6 +22,13 @@
       "when": 1794292581652,
       "tag": "0002_api-keys",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795162730602,
+      "tag": "0003_acoustic_vanisher",
+      "breakpoints": true
     }
   ]
 }

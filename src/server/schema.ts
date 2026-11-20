@@ -1,10 +1,12 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   text,
   timestamp,
   boolean,
   integer,
+  bigserial,
+  jsonb,
   index,
 } from "drizzle-orm/pg-core";
 
@@ -163,6 +165,20 @@ export const apikey = pgTable(
     index("apikey_referenceId_idx").on(table.referenceId),
     index("apikey_key_idx").on(table.key),
   ],
+);
+
+export const event = pgTable(
+  "event",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    type: text("type").notNull(),
+    actor: text("actor").notNull(),
+    occurredAt: timestamp("occurred_at").defaultNow().notNull(),
+    data: jsonb("data").notNull().default(sql`'{}'::jsonb`),
+  },
+  (table) => [index("event_entity_idx").on(table.entityType, table.entityId)],
 );
 
 export const userRelations = relations(user, ({ many }) => ({

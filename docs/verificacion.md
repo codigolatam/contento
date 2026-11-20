@@ -43,3 +43,16 @@ Esta página es para el equipo. Relaciona cada comportamiento que describen las 
 | No se puede invitar a quien ya es miembro ni invitar sin permisos de administración. | `workspaces.test.ts`: «rejects inviting an email that is already a member», «rejects invitations sent by a member without admin permissions» |
 | El workspace personal no se elimina pero sí se renombra; el adicional sí se elimina. | `workspaces.test.ts`: «rejects deleting the personal workspace but allows renaming it», «allows deleting an additional workspace» |
 | Un miembro no ve los workspaces ajenos. | `workspaces.test.ts`: «keeps other workspaces invisible to non-members» |
+
+## Crear claves de API para agentes
+
+| Comportamiento | Prueba |
+|---|---|
+| Crear una clave sin sesión o sin workspace se rechaza. | `api-keys.test.ts`: «rejects creating a key without a session or an organization» |
+| Una clave válida se verifica y devuelve su workspace y sus permisos. | `api-keys.test.ts`: «verifies a valid key and returns its workspace and permissions» |
+| Un administrador crea claves y lista las del workspace. | `api-keys.test.ts`: «lets an admin create keys and lists the keys of the workspace» |
+| Una clave caducada o eliminada ya no se verifica. | `api-keys.test.ts`: «does not verify an expired or deleted key» |
+| Los roles sin permiso `apiKey` no crean claves. | `api-keys.test.ts`: «rejects key creation by members without the apiKey permission» |
+| Nadie crea una clave para un workspace del que no es miembro. | `api-keys.test.ts`: «rejects creating a key for a workspace the user does not belong to» |
+| Las claves son del workspace y la verificación corre dentro del servicio. | `api-keys.test.ts`: «scopes keys to their workspace and keeps verify server-side» |
+| Eliminar el workspace elimina sus claves. | `api-keys.test.ts`: «invalidates the keys of a workspace that gets deleted» |

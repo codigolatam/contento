@@ -17,7 +17,8 @@ Un autor que produce contenido con agentes necesita un espacio donde su trabajo 
   - Actualización (tarea 004): la invitación no se envía por correo —no hay servicio de correo—, decisión del usuario pendiente; solo la acepta la cuenta del correo invitado.
   - Borde: una invitación caducada no se puede aceptar.
 - **CU-4 — Dar acceso a un agente:** un propietario o administrador crea una clave de API para el workspace con sus permisos.
-  - Borde: una clave eliminada o caducada deja de funcionar.
+  - Actualización (tarea 005): los permisos de la clave solo se asignan desde el propio servicio —la API HTTP los rechaza al crear—, así que una clave con permisos propios nace por vía interna.
+  - Borde: una clave eliminada o caducada deja de funcionar; eliminar el workspace elimina sus claves.
 - **CU-5 — Empezar con un espacio propio:** al registrarse, el autor recibe un workspace personal con su nombre, del que es propietario.
   - Variante: el workspace personal puede renombrarse, pero no eliminarse.
   - Borde: si la creación del workspace falla, el registro no se completa.
@@ -26,7 +27,7 @@ Un autor que produce contenido con agentes necesita un espacio donde su trabajo 
 
 - **Cuentas:** registro, acceso y cierre de sesión con correo y contraseña. Cada cuenta nueva recibe su workspace personal.
 - **Workspaces y roles:** un miembro no ve datos de otro workspace. El workspace personal se nombra con el nombre de su autor, puede renombrarse y no puede eliminarse. Los roles por defecto administran la organización; autor y editor se definen aparte.
-- **Claves de agente:** una clave pertenece a un workspace y solo tiene los permisos que se le concedieron.
+- **Claves de agente:** una clave pertenece a un workspace y solo tiene los permisos que se le concedieron. Eliminar el workspace elimina sus claves.
 - **Navegación:** la aplicación muestra un esqueleto con las secciones pipeline, series y piezas, sin funcionalidad todavía.
 
 ## Criterios de éxito

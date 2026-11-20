@@ -1,7 +1,9 @@
 import { APIError, betterAuth, getCurrentAdapter } from "better-auth";
 import type { BetterAuthOptions } from "better-auth";
+import type { GenericEndpointContext } from "@better-auth/core";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { apiKey } from "@better-auth/api-key";
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultRoles, defaultStatements } from "better-auth/plugins/organization/access";
 import type { Hono } from "hono";
@@ -10,7 +12,28 @@ import { createDatabase } from "./database";
 type Database = ReturnType<typeof createDatabase>;
 type Adapter = Awaited<ReturnType<typeof getCurrentAdapter>>;
 
-const ac = createAccessControl(defaultStatements);
+const ac = createAccessControl({
+  ...defaultStatements,
+  apiKey: ["create", "read", "update", "delete"],
+} as const);
+
+const adminPermissions = {
+  organization: ["update"],
+  member: ["create", "update", "delete"],
+  invitation: ["create", "cancel"],
+  team: ["create", "update", "delete"],
+  ac: ["create", "read", "update", "delete"],
+  apiKey: ["create", "read", "update", "delete"],
+} as const;
+
+const memberPermissions = {
+  organization: [],
+  member: [],
+  invitation: [],
+  team: [],
+  ac: ["read"],
+  apiKey: [],
+} as const;
 
 const autorPermissions = {
   organization: [],
@@ -18,6 +41,7 @@ const autorPermissions = {
   invitation: [],
   team: [],
   ac: ["read"],
+  apiKey: [],
 } as const;
 
 const editorPermissions = {
@@ -26,10 +50,13 @@ const editorPermissions = {
   invitation: [],
   team: [],
   ac: ["read"],
+  apiKey: [],
 } as const;
 
 const roles = {
   ...defaultRoles,
+  admin: ac.newRole(adminPermissions),
+  member: ac.newRole(memberPermissions),
   autor: ac.newRole(autorPermissions),
   editor: ac.newRole(editorPermissions),
 };
@@ -77,6 +104,21 @@ export const createPersonalWorkspace = async (adapter: Adapter, userId: string) 
   });
 };
 
+export const deleteWorkspaceApiKeys = async (
+  ctx: GenericEndpointContext | undefined,
+  organizationId: string,
+) => {
+  if (!ctx) {
+    throw new APIError("INTERNAL_SERVER_ERROR", {
+      message: "organization delete hook requires its context",
+    });
+  }
+  await ctx.context.adapter.deleteMany({
+    model: "apikey",
+    where: [{ field: "referenceId", value: organizationId }],
+  });
+};
+
 export const createAuth = (
   database: Database,
   overrides?: { createPersonalWorkspace?: (adapter: Adapter, userId: string) => Promise<void> },
@@ -98,16 +140,17 @@ export const createAuth = (
           },
         },
         organizationHooks: {
-          beforeDeleteOrganization: ({ organization: workspace }) =>
-            workspace.personal === true
-              ? Promise.reject(
-                  new APIError("FORBIDDEN", {
-                    message: "personal workspaces cannot be deleted",
-                  }),
-                )
-              : Promise.resolve(),
+          beforeDeleteOrganization: async ({ organization: workspace }, ctx) => {
+            if (workspace.personal === true) {
+              throw new APIError("FORBIDDEN", {
+                message: "personal workspaces cannot be deleted",
+              });
+            }
+            await deleteWorkspaceApiKeys(ctx, workspace.id);
+          },
         },
       }),
+      apiKey({ references: "organization", rateLimit: { enabled: false } }),
     ],
     databaseHooks: {
       account: {

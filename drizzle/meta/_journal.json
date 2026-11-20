@@ -15,6 +15,13 @@
       "when": 1794013736929,
       "tag": "0001_slow_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794292581652,
+      "tag": "0002_api-keys",
+      "breakpoints": true
     }
   ]
 }

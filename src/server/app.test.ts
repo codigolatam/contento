@@ -75,12 +75,34 @@ describe("createApp", () => {
       },
     );
 
-    it("returns plain 404 text for unknown routes", async () => {
-      const res = await createApp(webRoot).request("/no-such-route");
+    it("serves index.html for unknown navigation paths so the client router owns them", async () => {
+      const app = createApp(webRoot);
+
+      for (const path of ["/pipeline", "/no-such-route", "/editorial/piezas", "/apiculture"]) {
+        const res = await app.request(path);
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe("<h1>Contento</h1>");
+      }
+    });
+
+    it.each([
+      ["GET request for a missing file", "/missing.css", "GET"],
+      ["GET request under /api", "/api/unknown", "GET"],
+      ["GET request for the /api root", "/api", "GET"],
+      ["POST request to an unknown route", "/no-such-route", "POST"],
+      ["GET request with a malformed escape", "/%zz", "GET"],
+    ])("returns plain 404 text for %s", async (_label, path, method) => {
+      const res = await createApp(webRoot).request(path, { method });
 
       expect(res.status).toBe(404);
       expect(res.headers.get("content-type")).toContain("text/plain");
       expect(await res.text()).toBe("404 Not Found");
+    });
+
+    it("returns 404 for a navigation path when the web root is empty", async () => {
+      const res = await createApp(emptyWebRoot).request("/pipeline");
+
+      expect(res.status).toBe(404);
     });
   });
 

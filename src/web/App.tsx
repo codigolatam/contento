@@ -1,5 +1,10 @@
-export const App = () => (
-  <main>
-    <h1>Contento</h1>
-  </main>
-);
+import { BrowserRouter } from "react-router";
+import { AppRoutes } from "./routes";
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}

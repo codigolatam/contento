@@ -6,9 +6,14 @@ Esta página es para el equipo. Relaciona cada comportamiento que describen las 
 
 | Comportamiento | Prueba |
 |---|---|
-| La página de inicio muestra el nombre del producto como encabezado principal. | `App.test.tsx`: «renders the product name as the top-level heading» |
+| El encabezado muestra el nombre del producto y el espacio del workspace. | `routes.test.tsx`: «shows the product name and the reserved workspace slot in the header» |
+| `/` y cualquier ruta desconocida llevan a `/pipeline`. | `routes.test.tsx`: «redirects %s to the pipeline surface» |
+| Cada sección `/pipeline`, `/series` y `/piezas` se identifica por su título. | `routes.test.tsx`: «renders %s identified by its surface heading» |
+| La navegación enlaza las tres secciones y marca la activa. | `routes.test.tsx`: «links the three surfaces in the sidebar and marks the active section» |
+| Las superficies no hacen llamadas de red. | `routes.test.tsx`: «performs no network calls when rendering any surface» |
 | La aplicación se monta dentro del contenedor de la página. | `main.test.tsx`: «mounts the app inside the #root element» |
-| Una ruta inexistente responde con un error de página no encontrada en texto plano. | `app.test.ts`: «returns plain 404 text for unknown routes» |
+| Una ruta de navegación desconocida sirve `index.html` para que el router la resuelva. | `app.test.ts`: «serves index.html for unknown navigation paths so the client router owns them» |
+| Un archivo inexistente, una ruta `/api`, un path con `..` o un POST desconocido siguen dando 404. | `app.test.ts`: «returns plain 404 text for %s» |
 
 ## Arrancar el servicio
 

@@ -6,11 +6,7 @@ Un autor con agentes puede planear, redactar y revisar sus piezas dentro de Cont
 
 ## Now
 
-1. docs/epics/001-fundacion.md — Fundación del backoffice y cuentas
-   - Estado: en curso
-   - Justificación: es la única línea abierta y sostiene las demás: cuentas, workspaces, claves de agente y registro de eventos.
-   - Comparación: no aplica. Excepción autorizada por el usuario el 2026-10-30, porque solo hay una línea abierta y no hay orden que comparar.
-   - Escenario: ninguno.
+Ninguna por ahora. El hito fundacional quedó completado el 2026-11-20 y las siguientes líneas son propuestas pendientes de aprobación.
 
 ## Next
 

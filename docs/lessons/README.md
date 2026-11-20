@@ -16,3 +16,6 @@ Notas de lecciones aprendidas de las correcciones del usuario. Cada tema es un a
 - documentacion-de-producto.md
   - Disparadores: README.md, product-docs/
   - Resumen: La documentación de producto no menciona tareas.
+- diseno-visual.md
+  - Disparadores: src/web/, *.css, DESIGN.md, tokens, breakpoint, captura, Firefox
+  - Resumen: Los valores estéticos se razonan por proporción chrome/contenido y se validan renderizados; los defaults convencionales no sustituyen la evidencia.

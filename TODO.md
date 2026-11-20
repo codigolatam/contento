@@ -18,15 +18,4 @@
 
 - [x] docs/tasks/008-pulir-documentacion-mkdocs.md — Pulir la documentación de producto en MkDocs
 
-## Hito 1: Fundación del backoffice y cuentas
-<!-- épica: docs/epics/001-fundacion.md -->
-
-- [x] docs/tasks/001-scaffold.md — Scaffold del servicio y de la aplicación web
-- [x] docs/tasks/002-persistencia.md — Infraestructura de persistencia
-- [x] docs/tasks/003-autenticacion.md — Autenticación con better-auth
-- [x] docs/tasks/004-tenancy.md — Workspaces, roles e invitaciones
-- [x] docs/tasks/005-api-keys.md — Claves de API por agente
-- [x] docs/tasks/006-registro-eventos.md — Registro de eventos del dominio
-- [ ] docs/tasks/007-navegacion.md — Esqueleto de navegación de la aplicación editorial
-
 ## Propuestas en revisión

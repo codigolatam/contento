@@ -5,5 +5,13 @@ const apiPort = process.env.PORT ?? "3000";
 
 export default defineConfig({
   plugins: [react()],
-  server: { proxy: { "/health": `http://localhost:${apiPort}` } },
+  server: {
+    proxy: {
+      "/health": `http://localhost:${apiPort}`,
+      "/api": {
+        target: `http://localhost:${apiPort}`,
+        headers: { origin: `http://localhost:${apiPort}` },
+      },
+    },
+  },
 });

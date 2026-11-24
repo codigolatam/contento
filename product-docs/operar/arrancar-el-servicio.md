@@ -19,7 +19,7 @@ npm install
 npm run dev
 ```
 
-Levanta el servidor y la aplicación con recarga automática. La aplicación se abre en `http://localhost:5173`, y las peticiones a `/health` se reenvían al servidor.
+Levanta el servidor y la aplicación con recarga automática. La aplicación se abre en `http://localhost:5173`, y las peticiones a `/health` y `/api` se reenvían al servidor.
 
 ## Modo producción
 

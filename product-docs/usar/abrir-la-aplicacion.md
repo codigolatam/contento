@@ -1,6 +1,6 @@
 # Abrir la aplicación
 
-Abre la dirección de Contento en tu navegador. La aplicación carga en `/pipeline`, su primera sección.
+Abre la dirección de Contento en tu navegador. Si no tienes sesión, la aplicación te lleva a `/login`; tras entrar, carga en `/pipeline`, su primera sección —o en la que pediste originalmente—.
 
 La pantalla tiene tres zonas:
 
@@ -12,4 +12,4 @@ En pantallas estrechas la navegación se convierte en una fila horizontal bajo e
 
 Si escribes una dirección que no corresponde a una sección, la aplicación te lleva a `/pipeline`. Si la dirección apunta a un archivo que no existe, verás un mensaje de página no encontrada en texto plano.
 
-Las cuentas ya se pueden crear por la API; ve a [Crear una cuenta y entrar](crear-una-cuenta.md). Todavía no hay pantalla de registro ni espacios de trabajo.
+Si todavía no tienes cuenta, créala en `/registro`; más detalles en [Crear una cuenta y entrar](crear-una-cuenta.md). Todavía no hay espacios de trabajo editables.

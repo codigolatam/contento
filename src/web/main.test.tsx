@@ -26,6 +26,9 @@ describe("main entry", () => {
   });
 
   it("mounts the app inside the #root element", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ email: "ada@example.com" }), { status: 200 }),
+    );
     document.body.innerHTML = '<div id="root"></div>';
 
     await loadMain();

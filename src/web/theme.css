@@ -4,8 +4,10 @@
   --color-text: #1f1d1a;
   --color-text-muted: #6f6a63;
   --color-accent: #1f4e79;
+  --color-accent-strong: #173a5c;
   --color-danger: #a62639;
   --color-border: #e3dfd9;
+  --color-border-field: #8f887d;
 
   --font-sans: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
@@ -37,6 +39,7 @@
   --focus-ring-offset: 2px;
   --header-height: 56px;
   --sidebar-width: 200px;
+  --access-card-width: 360px;
   --nav-item-height: 32px;
   --transition-speed: 150ms;
 }

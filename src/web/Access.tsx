@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { SyntheticEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useLocation } from "react-router";
+import { authClient } from "./auth-client";
 
 type Mode = "sign-in" | "sign-up";
 type FieldName = "name" | "email" | "password";
@@ -44,10 +45,8 @@ export function Access({ mode }: AccessProps) {
   const signingIn = mode === "sign-in";
   const [failure, setFailure] = useState<Failure | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { from?: unknown } | null;
-  const from = typeof state?.from === "string" ? state.from : "/pipeline";
 
   useEffect(() => {
     const previous = document.title;
@@ -64,40 +63,30 @@ export function Access({ mode }: AccessProps) {
     const password = field(data, "password");
     const name = field(data, "name");
     if (!email || !password || (!signingIn && !name)) return;
-    const body = signingIn ? { email, password } : { name, email, password };
-    const endpoint = signingIn ? "/api/auth/sign-in/email" : "/api/auth/sign-up/email";
     setSubmitting(true);
-    let response: Response;
     try {
-      response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const { error } = signingIn
+        ? await authClient.signIn.email({ email, password })
+        : await authClient.signUp.email({ name, email, password });
+      setSubmitting(false);
+      if (error === null) {
+        setFailure(null);
+        return;
+      }
+      const kind = signingIn
+        ? error.status === 401
+          ? failures.credentials
+          : failures.network
+        : errorCode(error) === "USER_ALREADY_EXISTS"
+          ? failures.emailTaken
+          : errorCode(error) === "PASSWORD_TOO_SHORT"
+            ? failures.passwordShort
+            : failures.signUp;
+      setFailure((current) => ({ ...kind, attempt: (current?.attempt ?? 0) + 1 }));
     } catch {
       setSubmitting(false);
       setFailure((current) => ({ ...failures.network, attempt: (current?.attempt ?? 0) + 1 }));
-      return;
     }
-    setSubmitting(false);
-    if (response.ok) {
-      void navigate(from, { replace: true });
-      return;
-    }
-    if (signingIn) {
-      const kind = response.status === 401 ? failures.credentials : failures.network;
-      setFailure((current) => ({ ...kind, attempt: (current?.attempt ?? 0) + 1 }));
-      return;
-    }
-    const payload: unknown = await response.json().catch(() => null);
-    const code = errorCode(payload);
-    const kind =
-      code === "USER_ALREADY_EXISTS"
-        ? failures.emailTaken
-        : code === "PASSWORD_TOO_SHORT"
-          ? failures.passwordShort
-          : failures.signUp;
-    setFailure((current) => ({ ...kind, attempt: (current?.attempt ?? 0) + 1 }));
   };
 
   const describedBy = (name: FieldName, hint?: string) =>

@@ -1,19 +1,14 @@
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router";
+import { NavLink, Outlet } from "react-router";
+import { authClient } from "./auth-client";
 
 export function Layout() {
-  const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
   const signOut = async () => {
     setSigningOut(true);
-    await fetch("/api/auth/sign-out", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "{}",
-    }).catch(() => null);
+    await authClient.signOut().catch(() => null);
     setSigningOut(false);
-    void navigate("/login", { replace: true });
   };
 
   return (

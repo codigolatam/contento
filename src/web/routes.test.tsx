@@ -2,29 +2,19 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./routes";
+import { json, pathOf, refreshSession, resetSessionStore, sessionResponse, stubSession } from "./testing/fake-api";
 
-const renderAt = (path: string) =>
+const renderAt = (path: string, state?: unknown) =>
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter initialEntries={[{ pathname: path, state }]}>
       <AppRoutes />
     </MemoryRouter>,
   );
 
-const urlOf = (input: unknown) =>
-  typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url;
-
-const sessionResponse = (signedIn: boolean) =>
-  new Response(JSON.stringify(signedIn ? { email: "ada@example.com" } : { error: "unauthorized" }), {
-    status: signedIn ? 200 : 401,
-    headers: { "content-type": "application/json" },
-  });
-
-const stubSession = (signedIn: boolean) =>
-  vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(sessionResponse(signedIn)));
-
 describe("AppRoutes", () => {
   afterEach(() => {
     cleanup();
+    resetSessionStore();
     vi.restoreAllMocks();
   });
 
@@ -53,18 +43,21 @@ describe("AppRoutes", () => {
     },
   );
 
-  it("consults /api/me to learn the session state", async () => {
+  it("consults /api/auth/get-session to learn the session state", async () => {
     const fetchSpy = stubSession(false);
     renderAt("/pipeline");
 
     await screen.findByRole("button", { name: "Entrar" });
-    expect(fetchSpy.mock.calls.some(([input]) => urlOf(input) === "/api/me")).toBe(true);
+    expect(
+      fetchSpy.mock.calls.some(([input]) => pathOf(input) === "/api/auth/get-session"),
+    ).toBe(true);
   });
 
   it("shows neither the surface nor the access screen while the session check is pending", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
       .mockImplementation(() => new Promise<Response>(() => undefined));
+    refreshSession();
     renderAt("/pipeline");
 
     await waitFor(() => {
@@ -76,6 +69,7 @@ describe("AppRoutes", () => {
 
   it("treats a failed session check as anonymous and redirects to the access screen", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("network down"));
+    refreshSession();
     renderAt("/pipeline");
 
     expect(await screen.findByRole("button", { name: "Entrar" })).toBeDefined();
@@ -86,6 +80,17 @@ describe("AppRoutes", () => {
     async (path) => {
       stubSession(true);
       renderAt(path);
+
+      const heading = await screen.findByRole("heading", { level: 1, name: "Pipeline" });
+      expect(heading).toBeDefined();
+    },
+  );
+
+  it.each(["//external.example/path", "https://external.example/path", "javascript:alert(1)"])(
+    "ignores the external-looking return route %s and lands on the default surface",
+    async (from) => {
+      stubSession(true);
+      renderAt("/login", { from });
 
       const heading = await screen.findByRole("heading", { level: 1, name: "Pipeline" });
       expect(heading).toBeDefined();
@@ -118,31 +123,34 @@ describe("AppRoutes", () => {
   it("signs out through /api/auth/sign-out and returns to the access screen", async () => {
     let signedIn = true;
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      if (urlOf(input) === "/api/auth/sign-out") {
+      if (pathOf(input) === "/api/auth/sign-out") {
         signedIn = false;
+        return Promise.resolve(json({ success: true }));
       }
       return Promise.resolve(sessionResponse(signedIn));
     });
+    refreshSession();
     renderAt("/pipeline");
     await screen.findByRole("heading", { level: 1 });
 
     fireEvent.click(screen.getByRole("button", { name: "Salir" }));
 
     expect(await screen.findByRole("button", { name: "Entrar" })).toBeDefined();
-    const signOutCall = fetchSpy.mock.calls.find(([input]) => urlOf(input) === "/api/auth/sign-out");
+    const signOutCall = fetchSpy.mock.calls.find(([input]) => pathOf(input) === "/api/auth/sign-out");
     expect(signOutCall?.[1]?.method).toBe("POST");
   });
 
   it("disables the sign-out action and declares the process while it runs", async () => {
     let resolveSignOut: (response: Response) => void = () => undefined;
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      if (urlOf(input) === "/api/auth/sign-out") {
+      if (pathOf(input) === "/api/auth/sign-out") {
         return new Promise<Response>((resolve) => {
           resolveSignOut = resolve;
         });
       }
       return Promise.resolve(sessionResponse(true));
     });
+    refreshSession();
     renderAt("/pipeline");
     await screen.findByRole("heading", { level: 1 });
 
@@ -150,16 +158,17 @@ describe("AppRoutes", () => {
 
     const pending = await screen.findByRole("button", { name: "Saliendo…" });
     expect((pending as HTMLButtonElement).disabled).toBe(true);
-    resolveSignOut(sessionResponse(true));
+    resolveSignOut(json({ success: true }));
   });
 
   it("keeps the surfaces reachable when the sign-out request fails", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      if (urlOf(input) === "/api/auth/sign-out") {
+      if (pathOf(input) === "/api/auth/sign-out") {
         return Promise.reject(new TypeError("network down"));
       }
       return Promise.resolve(sessionResponse(true));
     });
+    refreshSession();
     renderAt("/pipeline");
     await screen.findByRole("heading", { level: 1 });
 

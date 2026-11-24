@@ -152,6 +152,7 @@ Casos de uso derivados del objetivo de la tarea y de CU-1 de `docs/prd/001-funda
 - La acción de salir envía `content-type: application/json` con cuerpo `{}`. Hallazgo de la verificación manual: better-auth responde 415 sin esa cabecera y la sesión no se cerraba —`RequireAnon` devolvía al usuario a `/pipeline`—.
 - Segunda ronda de crítica de diseño, con permiso para reescribir reglas: el fondo de página pasa a papel real `#f4f1ea` —la tarjeta blanca recupera la separación que la guía promete sin sombras—, la marca se firma en `--font-serif` —excepción ceremonial de la familia reservada al contenido—, el espaciado de superficies escasas se rige por un «ritmo de lectura» por proximidad, `aria-invalid` gana contraparte visual con borde `--color-danger`, el estado en curso declara su relleno `--color-border`, el hover carga más la tinta (`--color-accent-strong: #12304c`), la tarjeta se asienta en el centro óptico (`18vh`) y la secundaria-enlace codifica su subrayado. Las reglas reescritas entraron en `DESIGN.md`.
 - La suite usa `.pglite-data-test` como directorio por defecto bajo `NODE_ENV=test` —`resolveDataDir` en `src/server/data-dir.ts`— mientras desarrollo y producción conservan `.pglite-data`. Motivo: el test que ejercita el directorio por defecto competía con el dev server por `.pglite-data` y llegó a corromperlo; ahora la suite nunca toca los datos locales.
+- La web deja de hablar con `/api/auth/*` por `fetch` crudo y adopta el cliente oficial `better-auth/react` —decisión registrada en D006—: el estado de sesión vive en el atom compartido de `useSession`, que se refresca solo tras cada acción de auth, así que las guardas reaccionan por sí mismas —`RequireAnon` honra ahora `location.state.from`— y ni `Access` ni `Layout` navegan manualmente. El mapeo de errores del producto se conserva —`status` 401 son credenciales y el `code` del cuerpo nombra el motivo—. El ítem del plan decía «consulta a `/api/me`»: ese endpoint sigue vivo como contrato para agentes, pero la web ya no lo usa. Las pruebas stubbean respuestas de `fetch` comparando por `pathname` —el cliente llama con URLs absolutas y objetos `URL`—, fuerzan el refetch del atom con `session.refetch()` porque nanostores no refirea `onMount` entre pruebas, y lo resetean en `afterEach` —helpers en `src/web/testing/fake-api.ts`—.
 
 ## Verificación manual
 
@@ -162,5 +163,6 @@ Casos de uso derivados del objetivo de la tarea y de CU-1 de `docs/prd/001-funda
 ## Revisión
 
 - Subagente: 2026-11-23 — Aprueba
+- Subagente (refactor del cliente de auth): 2026-11-24 — Aprueba
 - Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

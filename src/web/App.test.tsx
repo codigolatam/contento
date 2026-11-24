@@ -1,19 +1,12 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
-
-const sessionResponse = (signedIn: boolean) =>
-  new Response(JSON.stringify(signedIn ? { email: "ada@example.com" } : { error: "unauthorized" }), {
-    status: signedIn ? 200 : 401,
-    headers: { "content-type": "application/json" },
-  });
-
-const stubSession = (signedIn: boolean) =>
-  vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(sessionResponse(signedIn)));
+import { resetSessionStore, stubSession } from "./testing/fake-api";
 
 describe("App", () => {
   afterEach(() => {
     cleanup();
+    resetSessionStore();
     vi.restoreAllMocks();
   });
 

@@ -1,6 +1,7 @@
 import { screen } from "@testing-library/react";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { refreshSession, resetSessionStore, sessionResponse } from "./testing/fake-api";
 
 const mountedRoots = vi.hoisted(() => [] as Root[]);
 
@@ -22,13 +23,14 @@ describe("main entry", () => {
   afterEach(() => {
     for (const root of mountedRoots.splice(0)) root.unmount();
     document.body.innerHTML = "";
+    resetSessionStore();
+    vi.restoreAllMocks();
     vi.resetModules();
   });
 
   it("mounts the app inside the #root element", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ email: "ada@example.com" }), { status: 200 }),
-    );
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(sessionResponse(true));
+    refreshSession();
     document.body.innerHTML = '<div id="root"></div>';
 
     await loadMain();

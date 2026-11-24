@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./routes";
+import { json, pathOf, refreshSession, resetSessionStore, sessionResponse } from "./testing/fake-api";
 
 const renderAt = (path: string) =>
   render(
@@ -16,15 +17,6 @@ const formOf = (container: HTMLElement): HTMLFormElement => {
   return form;
 };
 
-const urlOf = (input: unknown) =>
-  typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url;
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-
 interface StubOverrides {
   signInStatus?: number;
   signUpResponse?: { status: number; body: unknown };
@@ -32,31 +24,30 @@ interface StubOverrides {
 
 const stubApi = (overrides: StubOverrides = {}) => {
   const state = { signedIn: false };
-  const calls: { url: string; init?: RequestInit }[] = [];
+  const calls: { path: string; init?: RequestInit }[] = [];
   vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
-    const url = urlOf(input);
-    calls.push({ url, init });
-    if (url === "/api/me") {
-      return Promise.resolve(
-        json(state.signedIn ? { email: "ada@example.com" } : { error: "unauthorized" }, state.signedIn ? 200 : 401),
-      );
+    const path = pathOf(input);
+    calls.push({ path, init });
+    if (path === "/api/auth/get-session") {
+      return Promise.resolve(sessionResponse(state.signedIn));
     }
-    if (url === "/api/auth/sign-in/email") {
+    if (path === "/api/auth/sign-in/email") {
       const status = overrides.signInStatus ?? 200;
       if (status === 200) state.signedIn = true;
       return Promise.resolve(json({}, status));
     }
-    if (url === "/api/auth/sign-up/email") {
+    if (path === "/api/auth/sign-up/email") {
       const signUp = overrides.signUpResponse ?? { status: 200, body: {} };
       if (signUp.status === 200) state.signedIn = true;
       return Promise.resolve(json(signUp.body, signUp.status));
     }
     return Promise.resolve(json({ error: "not found" }, 404));
   });
+  refreshSession();
   return { state, calls };
 };
 
-const jsonBody = (request: { url: string; init?: RequestInit } | undefined): unknown => {
+const jsonBody = (request: { path: string; init?: RequestInit } | undefined): unknown => {
   if (typeof request?.init?.body !== "string") throw new Error("expected a string JSON body");
   return JSON.parse(request.init.body);
 };
@@ -77,6 +68,7 @@ const fillSignUp = () => {
 describe("Access", () => {
   afterEach(() => {
     cleanup();
+    resetSessionStore();
     vi.restoreAllMocks();
   });
 
@@ -136,9 +128,9 @@ describe("Access", () => {
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Pipeline" })).toBeDefined();
-    const request = calls.find((c) => c.url === "/api/auth/sign-in/email");
+    const request = calls.find((c) => c.path === "/api/auth/sign-in/email");
     expect(request?.init?.method).toBe("POST");
-    expect(request?.init?.headers).toEqual({ "content-type": "application/json" });
+    expect(new Headers(request?.init?.headers).get("content-type")).toBe("application/json");
     expect(jsonBody(request)).toEqual({
       email: "ada@example.com",
       password: "password123",
@@ -149,8 +141,8 @@ describe("Access", () => {
     let resolveSignIn: (response: Response) => void = () => undefined;
     const state = { signedIn: false };
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
-      const url = urlOf(input);
-      if (url === "/api/auth/sign-in/email") {
+      const path = pathOf(input);
+      if (path === "/api/auth/sign-in/email") {
         return new Promise<Response>((resolve) => {
           resolveSignIn = (response) => {
             state.signedIn = true;
@@ -158,14 +150,12 @@ describe("Access", () => {
           };
         });
       }
-      if (url === "/api/me") {
-        return json(
-          state.signedIn ? { email: "ada@example.com" } : { error: "unauthorized" },
-          state.signedIn ? 200 : 401,
-        );
+      if (path === "/api/auth/get-session") {
+        return sessionResponse(state.signedIn);
       }
       return json({ error: "not found" }, 404);
     });
+    refreshSession();
     renderAt("/login");
     await screen.findByLabelText("Correo");
 
@@ -238,13 +228,14 @@ describe("Access", () => {
 
   it("shows the network error when the sign-in request fails", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-      const url = urlOf(input);
-      if (url === "/api/auth/sign-in/email") {
+      const path = pathOf(input);
+      if (path === "/api/auth/sign-in/email") {
         return Promise.reject(new TypeError("network down"));
       }
-      if (url === "/api/me") return Promise.resolve(json({ error: "unauthorized" }, 401));
+      if (path === "/api/auth/get-session") return Promise.resolve(sessionResponse(false));
       return Promise.resolve(json({ error: "not found" }, 404));
     });
+    refreshSession();
     renderAt("/login");
     await screen.findByLabelText("Correo");
 
@@ -268,7 +259,7 @@ describe("Access", () => {
     for (const [label, value] of Object.entries(fields)) fillField(label, value);
     fireEvent.submit(formOf(container));
 
-    expect(calls.some((c) => c.url === "/api/auth/sign-in/email")).toBe(false);
+    expect(calls.some((c) => c.path === "/api/auth/sign-in/email")).toBe(false);
   });
 
   it("does not call the service when signing up without a name", async () => {
@@ -279,7 +270,7 @@ describe("Access", () => {
     fillSignIn();
     fireEvent.submit(formOf(container));
 
-    expect(calls.some((c) => c.url === "/api/auth/sign-up/email")).toBe(false);
+    expect(calls.some((c) => c.path === "/api/auth/sign-up/email")).toBe(false);
   });
 
   it("returns to the route that asked for a session after signing in", async () => {
@@ -314,7 +305,7 @@ describe("Access", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Pipeline" })).toBeDefined();
-    const request = calls.find((c) => c.url === "/api/auth/sign-up/email");
+    const request = calls.find((c) => c.path === "/api/auth/sign-up/email");
     expect(request?.init?.method).toBe("POST");
     expect(jsonBody(request)).toEqual({
       name: "Ada",

@@ -21,6 +21,8 @@ npm run dev
 
 Levanta el servidor y la aplicación con recarga automática. La aplicación se abre en `http://localhost:5173`, y las peticiones a `/health` y `/api` se reenvían al servidor.
 
+Los datos del desarrollo viven en `.pglite-data`, ignorado por git; `PGLITE_DATA_DIR` apunta a otro directorio si hace falta. La suite de pruebas usa `.pglite-data-test`, así que `npm test` nunca toca los datos locales.
+
 ## Modo producción
 
 Compila la aplicación antes de arrancar el servidor:

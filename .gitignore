@@ -4,3 +4,4 @@ coverage
 .venv-docs
 site
 .pglite-data
+.pglite-data-test

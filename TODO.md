@@ -19,4 +19,13 @@
 - [x] docs/tasks/008-pulir-documentacion-mkdocs.md — Pulir la documentación de producto en MkDocs
 - [ ] docs/tasks/009-acceso-ui.md — Pantalla de acceso: registro y entrada
 
+## Hito 2: Pipeline editorial con puertas
+<!-- épica: docs/epics/002-pipeline-editorial.md -->
+
+- [ ] docs/tasks/010-modelo-y-api-pipeline.md — Modelo y API del pipeline editorial
+- [ ] docs/tasks/011-escribir-el-borrador.md — Escribir el borrador: de `idea aprobada` a `lista`
+- [ ] docs/tasks/012-retroceso-y-descarte.md — Retroceso, reapertura y descarte
+- [ ] docs/tasks/013-seccion-recursos.md — Sección de recursos del workspace
+- [ ] docs/tasks/014-kanban-y-ficha.md — Kanban del pipeline y ficha de maduración
+
 ## Propuestas en revisión

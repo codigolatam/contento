@@ -113,8 +113,10 @@ export function Access({ mode }: AccessProps) {
           void submit(event);
         }}
       >
-        <p className="access-brand">Contento</p>
-        <h1>{signingIn ? "Entrar" : "Crear cuenta"}</h1>
+        <header className="access-header">
+          <p className="access-brand">Contento</p>
+          <h1>{signingIn ? "Entrar" : "Crear cuenta"}</h1>
+        </header>
         {!signingIn && (
           <label className="field">
             <span>Nombre</span>

@@ -124,18 +124,27 @@ body {
   gap: var(--space-2);
   width: 100%;
   max-width: var(--access-card-width);
+  margin-block-end: 18vh;
   padding: var(--space-3);
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
 }
 
+.access-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
 .access-brand {
   margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-label);
-  font-weight: var(--font-weight-label);
-  line-height: var(--line-height-label);
+  color: var(--color-text);
+  font-family: var(--font-serif);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
 }
 
 .access-card h1 {
@@ -170,6 +179,16 @@ body {
   outline-offset: var(--focus-ring-offset);
 }
 
+.field input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.field input:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-text);
+  /* corrección del fondo que impone el autofill, no sombra de separación */
+  box-shadow: 0 0 0 1000px var(--color-surface) inset;
+}
+
 .field-hint {
   margin: calc(-1 * var(--space-1)) 0 0;
   color: var(--color-text-muted);
@@ -179,7 +198,7 @@ body {
 }
 
 .access-error {
-  margin: 0;
+  margin: calc(-1 * var(--space-1)) 0 0;
   color: var(--color-danger);
   font-size: var(--font-size-label);
   font-weight: var(--font-weight-label);
@@ -187,6 +206,7 @@ body {
 }
 
 .primary-action {
+  margin-top: var(--space-1);
   padding: var(--space-1) var(--space-2);
   background: var(--color-accent);
   border: var(--border-width) solid var(--color-accent);
@@ -208,7 +228,7 @@ body {
 }
 
 .primary-action:disabled {
-  background: var(--color-surface);
+  background: var(--color-border);
   border-color: var(--color-border);
   color: var(--color-text-muted);
   cursor: default;
@@ -231,6 +251,14 @@ body {
   line-height: var(--line-height-label);
   cursor: pointer;
   transition: color var(--transition-speed);
+}
+
+a.secondary-action {
+  text-decoration: underline;
+}
+
+button.secondary-action {
+  text-decoration: none;
 }
 
 .secondary-action:hover:not(:disabled) {

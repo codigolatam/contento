@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 type Mode = "sign-in" | "sign-up";
 type FieldName = "name" | "email" | "password";
 
+// Mirrors the better-auth sign-up default; keep in sync with the server config.
 const MIN_PASSWORD_LENGTH = 8;
 
 interface Failure {

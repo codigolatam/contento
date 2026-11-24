@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
 
-export const checkSession = async (): Promise<boolean> => {
+const checkSession = async (): Promise<boolean> => {
   try {
     const response = await fetch("/api/me");
     return response.ok;

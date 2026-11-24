@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { field } from "./Access";
 import { AppRoutes } from "./routes";
 import { json, pathOf, refreshSession, resetSessionStore, sessionResponse } from "./testing/fake-api";
 
@@ -70,6 +71,13 @@ describe("Access", () => {
     cleanup();
     resetSessionStore();
     vi.restoreAllMocks();
+  });
+
+  it("reads form values as strings and defaults missing ones to empty", () => {
+    const data = new FormData();
+    expect(field(data, "email")).toBe("");
+    data.set("email", "ada@example.com");
+    expect(field(data, "email")).toBe("ada@example.com");
   });
 
   it("shows the sign-in form in Spanish for an anonymous visitor", async () => {

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { SyntheticEvent } from "react";
 import { Link, useLocation } from "react-router";
 import { authClient } from "./auth-client";
+import type { ReturnRouteState } from "./session";
 
 type Mode = "sign-in" | "sign-up";
 type FieldName = "name" | "email" | "password";
@@ -9,10 +10,41 @@ type FieldName = "name" | "email" | "password";
 // Mirrors the better-auth sign-up default; keep in sync with the server config.
 const MIN_PASSWORD_LENGTH = 8;
 
+interface FieldSpec {
+  name: FieldName;
+  label: string;
+  type: "text" | "email" | "password";
+  autoComplete: string;
+  inputMode?: "email";
+  autoCapitalize?: "none";
+  spellCheck?: boolean;
+  autoFocus?: boolean;
+  minLength?: number;
+  hintId?: string;
+}
+
 interface Failure {
   message: string;
   fields: readonly FieldName[];
   attempt: number;
+}
+
+type FailureKind = Omit<Failure, "attempt">;
+
+interface AuthError {
+  status?: unknown;
+  code?: unknown;
+}
+
+interface ModeSpec {
+  title: string;
+  heading: string;
+  submitLabel: string;
+  submittingLabel: string;
+  altLink: { to: string; label: string };
+  fields: readonly FieldSpec[];
+  action: (data: FormData) => Promise<{ error: AuthError | null }>;
+  failureFor: (error: AuthError) => FailureKind;
 }
 
 const failures = {
@@ -26,15 +58,74 @@ const failures = {
   network: { message: "No se pudo conectar con el servicio. Inténtalo de nuevo.", fields: [] },
 } as const satisfies Record<string, { message: string; fields: readonly FieldName[] }>;
 
-const errorCode = (payload: unknown): string | undefined => {
-  if (typeof payload !== "object" || payload === null || !("code" in payload)) return undefined;
-  const code = (payload as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
-};
-
-const field = (data: FormData, key: string): string => {
+export const field = (data: FormData, key: string): string => {
   const value = data.get(key);
   return typeof value === "string" ? value : "";
+};
+
+const MODES: Record<Mode, ModeSpec> = {
+  "sign-in": {
+    title: "Entrar · Contento",
+    heading: "Entrar",
+    submitLabel: "Entrar",
+    submittingLabel: "Entrando…",
+    altLink: { to: "/registro", label: "Crear una cuenta" },
+    fields: [
+      {
+        name: "email",
+        label: "Correo",
+        type: "email",
+        autoComplete: "username",
+        inputMode: "email",
+        autoCapitalize: "none",
+        spellCheck: false,
+        autoFocus: true,
+      },
+      { name: "password", label: "Contraseña", type: "password", autoComplete: "current-password" },
+    ],
+    action: (data) =>
+      authClient.signIn.email({ email: field(data, "email"), password: field(data, "password") }),
+    failureFor: (error) => (error.status === 401 ? failures.credentials : failures.network),
+  },
+  "sign-up": {
+    title: "Crear cuenta · Contento",
+    heading: "Crear cuenta",
+    submitLabel: "Crear cuenta",
+    submittingLabel: "Creando cuenta…",
+    altLink: { to: "/login", label: "Ya tengo cuenta" },
+    fields: [
+      { name: "name", label: "Nombre", type: "text", autoComplete: "name", autoFocus: true },
+      {
+        name: "email",
+        label: "Correo",
+        type: "email",
+        autoComplete: "email",
+        inputMode: "email",
+        autoCapitalize: "none",
+        spellCheck: false,
+      },
+      {
+        name: "password",
+        label: "Contraseña",
+        type: "password",
+        autoComplete: "new-password",
+        minLength: MIN_PASSWORD_LENGTH,
+        hintId: "password-hint",
+      },
+    ],
+    action: (data) =>
+      authClient.signUp.email({
+        name: field(data, "name"),
+        email: field(data, "email"),
+        password: field(data, "password"),
+      }),
+    failureFor: (error) => {
+      const code = typeof error.code === "string" ? error.code : undefined;
+      if (code === "USER_ALREADY_EXISTS") return failures.emailTaken;
+      if (code === "PASSWORD_TOO_SHORT") return failures.passwordShort;
+      return failures.signUp;
+    },
+  },
 };
 
 interface AccessProps {
@@ -42,50 +133,41 @@ interface AccessProps {
 }
 
 export function Access({ mode }: AccessProps) {
-  const signingIn = mode === "sign-in";
+  const { title, heading, submitLabel, submittingLabel, altLink, fields, action, failureFor } =
+    MODES[mode];
   const [failure, setFailure] = useState<Failure | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const location = useLocation();
-  const state = location.state as { from?: unknown } | null;
+  const state = location.state as ReturnRouteState | null;
 
   useEffect(() => {
     const previous = document.title;
-    document.title = signingIn ? "Entrar · Contento" : "Crear cuenta · Contento";
+    document.title = title;
     return () => {
       document.title = previous;
     };
-  }, [signingIn]);
+  }, [title]);
+
+  const fail = (kind: FailureKind) => {
+    setFailure((current) => ({ ...kind, attempt: (current?.attempt ?? 0) + 1 }));
+  };
 
   const submit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const email = field(data, "email");
-    const password = field(data, "password");
-    const name = field(data, "name");
-    if (!email || !password || (!signingIn && !name)) return;
+    if (!fields.every(({ name }) => field(data, name))) return;
     setSubmitting(true);
     try {
-      const { error } = signingIn
-        ? await authClient.signIn.email({ email, password })
-        : await authClient.signUp.email({ name, email, password });
-      setSubmitting(false);
+      const { error } = await action(data);
       if (error === null) {
         setFailure(null);
-        return;
+      } else {
+        fail(failureFor(error));
       }
-      const kind = signingIn
-        ? error.status === 401
-          ? failures.credentials
-          : failures.network
-        : errorCode(error) === "USER_ALREADY_EXISTS"
-          ? failures.emailTaken
-          : errorCode(error) === "PASSWORD_TOO_SHORT"
-            ? failures.passwordShort
-            : failures.signUp;
-      setFailure((current) => ({ ...kind, attempt: (current?.attempt ?? 0) + 1 }));
     } catch {
+      fail(failures.network);
+    } finally {
       setSubmitting(false);
-      setFailure((current) => ({ ...failures.network, attempt: (current?.attempt ?? 0) + 1 }));
     }
   };
 
@@ -105,60 +187,43 @@ export function Access({ mode }: AccessProps) {
       >
         <header className="access-header">
           <p className="access-brand">Contento</p>
-          <h1>{signingIn ? "Entrar" : "Crear cuenta"}</h1>
+          <h1>{heading}</h1>
         </header>
-        {!signingIn && (
-          <label className="field">
-            <span>Nombre</span>
-            <input name="name" type="text" required autoComplete="name" autoFocus />
-          </label>
-        )}
-        <label className="field">
-          <span>Correo</span>
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete={signingIn ? "username" : "email"}
-            inputMode="email"
-            autoCapitalize="none"
-            spellCheck={false}
-            autoFocus={signingIn}
-            aria-invalid={invalid("email")}
-            aria-describedby={describedBy("email")}
-          />
-        </label>
-        <label className="field">
-          <span>Contraseña</span>
-          <input
-            name="password"
-            type="password"
-            required
-            minLength={signingIn ? undefined : MIN_PASSWORD_LENGTH}
-            autoComplete={signingIn ? "current-password" : "new-password"}
-            aria-invalid={invalid("password")}
-            aria-describedby={describedBy("password", signingIn ? undefined : "password-hint")}
-          />
-        </label>
-        {!signingIn && (
-          <p className="field-hint" id="password-hint">
-            Mínimo {MIN_PASSWORD_LENGTH} caracteres.
-          </p>
-        )}
+        {fields.map((spec) => (
+          <Fragment key={spec.name}>
+            <label className="field">
+              <span>{spec.label}</span>
+              <input
+                name={spec.name}
+                type={spec.type}
+                required
+                autoComplete={spec.autoComplete}
+                inputMode={spec.inputMode}
+                autoCapitalize={spec.autoCapitalize}
+                spellCheck={spec.spellCheck}
+                autoFocus={spec.autoFocus}
+                minLength={spec.minLength}
+                aria-invalid={invalid(spec.name)}
+                aria-describedby={describedBy(spec.name, spec.hintId)}
+              />
+            </label>
+            {spec.hintId !== undefined && (
+              <p className="field-hint" id={spec.hintId}>
+                Mínimo {MIN_PASSWORD_LENGTH} caracteres.
+              </p>
+            )}
+          </Fragment>
+        ))}
         {failure !== null && (
           <p className="access-error" id="access-error" role="alert" key={failure.attempt}>
             {failure.message}
           </p>
         )}
         <button className="primary-action" type="submit" disabled={submitting}>
-          {submitting ? (signingIn ? "Entrando…" : "Creando cuenta…") : signingIn ? "Entrar" : "Crear cuenta"}
+          {submitting ? submittingLabel : submitLabel}
         </button>
-        <Link
-          className="secondary-action"
-          to={signingIn ? "/registro" : "/login"}
-          state={state}
-        >
-          {signingIn ? "Crear una cuenta" : "Ya tengo cuenta"}
+        <Link className="secondary-action" to={altLink.to} state={state}>
+          {altLink.label}
         </Link>
       </form>
     </main>

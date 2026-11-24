@@ -4,6 +4,10 @@ import { authClient } from "./auth-client";
 
 type SessionState = "checking" | "signed-in" | "anonymous";
 
+export interface ReturnRouteState {
+  from?: unknown;
+}
+
 const useSessionState = (): SessionState => {
   const { data, isPending } = authClient.useSession();
   if (isPending) return "checking";
@@ -29,7 +33,7 @@ export function RequireAnon({ children }: GuardProps) {
   const state = useSessionState();
   const location = useLocation();
   if (state === "signed-in") {
-    const from = (location.state as { from?: unknown } | null)?.from;
+    const from = (location.state as ReturnRouteState | null)?.from;
     const valid = typeof from === "string" && from.startsWith("/") && !from.startsWith("//");
     return <Navigate to={valid ? from : "/pipeline"} replace />;
   }

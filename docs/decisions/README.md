@@ -24,3 +24,7 @@ Registro de las decisiones de diseño que dan forma al proyecto. Cada decisión 
   - Disparadores: DESIGN.md, src/web/theme.css, src/web/app.css, tokens, variables CSS, guía de estilo
   - Resumen: Los valores visuales viven en DESIGN.md y se materializan en tokens :root; un literal fuera de ellos es deriva.
   - Estado: Aceptada
+- D005-documentos-con-tipo.md
+  - Disparadores: src/server/schema.ts, documento, recurso, borrador, tipo, pipeline editorial, propuestas 002 y 003
+  - Resumen: Una única entidad documento con un tipo que declara su función y gobierna su ciclo de vida.
+  - Estado: Aceptada

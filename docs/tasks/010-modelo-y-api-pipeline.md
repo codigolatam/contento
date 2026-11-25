@@ -2,7 +2,7 @@
 
 ## Estado
 
-[~] En progreso
+[r] En revisión
 
 ## Tipo
 
@@ -197,6 +197,6 @@ Decisiones transversales del plan:
 
 ## Revisión
 
-- Subagente: [fecha] — [Aprueba | Solicita cambios]
+- Subagente: 2026-11-25 — Aprueba
 - Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

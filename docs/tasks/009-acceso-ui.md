@@ -2,7 +2,7 @@
 
 ## Estado
 
-[~] En progreso
+[x] Completada
 
 ## Tipo
 
@@ -164,5 +164,5 @@ Casos de uso derivados del objetivo de la tarea y de CU-1 de `docs/prd/001-funda
 
 - Subagente: 2026-11-23 — Aprueba
 - Subagente (refactor del cliente de auth): 2026-11-24 — Aprueba
-- Usuario (ejecución): [fecha] — [Aprueba | Solicita cambios]
+- Usuario (ejecución): 2026-11-24 — Aprueba
 - Usuario (cierre): [fecha] — [Aprueba | Solicita cambios]

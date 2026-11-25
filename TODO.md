@@ -17,7 +17,6 @@
 ## General
 
 - [x] docs/tasks/008-pulir-documentacion-mkdocs.md — Pulir la documentación de producto en MkDocs
-- [ ] docs/tasks/009-acceso-ui.md — Pantalla de acceso: registro y entrada
 
 ## Hito 2: Pipeline editorial con puertas
 <!-- épica: docs/epics/002-pipeline-editorial.md -->

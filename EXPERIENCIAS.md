@@ -41,3 +41,10 @@
   Obtenido: Se propusieron valores convencionales de partida (sidebar 240px, breakpoint 640px, indicador con box-shadow) que el usuario juzgó subóptimos al verlos renderizados.
   Corrección: Ante decisiones visuales, cuestionar los defaults convencionales contra el contenido real —la proporción chrome/contenido— y validar con capturas renderizadas antes de darlos por buenos; el usuario decide con evidencia, no con la propuesta en abstracto.
   Estado: consolidada
+
+- Id: 20261124T213249
+  Tarea: docs/tasks/009-acceso-ui.md
+  Esperado: La suite se entrega con 100% de cobertura en statements, branches, functions y lines.
+  Obtenido: La suite se presentó con cobertura por debajo del 100% exigido.
+  Corrección: Mantener el 100% de cobertura como requisito permanente de las pruebas.
+  Estado: consolidada

@@ -1,11 +1,12 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./routes";
+import { json, pathOf, refreshSession, resetSessionStore, sessionResponse, stubSession } from "./testing/fake-api";
 
-const renderAt = (path: string) =>
+const renderAt = (path: string, state?: unknown) =>
   render(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter initialEntries={[{ pathname: path, state }]}>
       <AppRoutes />
     </MemoryRouter>,
   );
@@ -13,31 +14,94 @@ const renderAt = (path: string) =>
 describe("AppRoutes", () => {
   afterEach(() => {
     cleanup();
+    resetSessionStore();
     vi.restoreAllMocks();
   });
 
-  it.each(["/", "/otra-cosa"])("redirects %s to the pipeline surface", async (path) => {
-    renderAt(path);
-
-    const heading = await screen.findByRole("heading", { level: 1 });
-    expect(heading.textContent).toBe("Pipeline");
-  });
-
   it.each([
+    ["/", "Pipeline"],
     ["/pipeline", "Pipeline"],
     ["/series", "Series"],
     ["/piezas", "Piezas"],
-  ])("renders %s identified by its surface heading", async (path, name) => {
+    ["/otra-cosa", "Pipeline"],
+  ])("renders %s as %s for a signed-in session", async (path, name) => {
+    stubSession(true);
     renderAt(path);
 
     const heading = await screen.findByRole("heading", { level: 1 });
     expect(heading.textContent).toBe(name);
   });
 
+  it.each(["/", "/pipeline", "/series", "/piezas", "/otra-cosa"])(
+    "redirects %s to the access screen without a session",
+    async (path) => {
+      stubSession(false);
+      renderAt(path);
+
+      expect(await screen.findByRole("button", { name: "Entrar" })).toBeDefined();
+      expect(screen.queryByRole("link", { name: "Pipeline" })).toBeNull();
+    },
+  );
+
+  it("consults /api/auth/get-session to learn the session state", async () => {
+    const fetchSpy = stubSession(false);
+    renderAt("/pipeline");
+
+    await screen.findByRole("button", { name: "Entrar" });
+    expect(
+      fetchSpy.mock.calls.some(([input]) => pathOf(input) === "/api/auth/get-session"),
+    ).toBe(true);
+  });
+
+  it("shows neither the surface nor the access screen while the session check is pending", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(() => new Promise<Response>(() => undefined));
+    refreshSession();
+    renderAt("/pipeline");
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalled();
+    });
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Entrar" })).toBeNull();
+  });
+
+  it("treats a failed session check as anonymous and redirects to the access screen", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("network down"));
+    refreshSession();
+    renderAt("/pipeline");
+
+    expect(await screen.findByRole("button", { name: "Entrar" })).toBeDefined();
+  });
+
+  it.each(["/login", "/registro"])(
+    "redirects a signed-in visitor away from %s",
+    async (path) => {
+      stubSession(true);
+      renderAt(path);
+
+      const heading = await screen.findByRole("heading", { level: 1, name: "Pipeline" });
+      expect(heading).toBeDefined();
+    },
+  );
+
+  it.each(["//external.example/path", "https://external.example/path", "javascript:alert(1)"])(
+    "ignores the external-looking return route %s and lands on the default surface",
+    async (from) => {
+      stubSession(true);
+      renderAt("/login", { from });
+
+      const heading = await screen.findByRole("heading", { level: 1, name: "Pipeline" });
+      expect(heading).toBeDefined();
+    },
+  );
+
   it("links the three surfaces in the sidebar and marks the active section", async () => {
+    stubSession(true);
     renderAt("/series");
 
-    const nav = screen.getByRole("navigation", { name: "Secciones" });
+    const nav = await screen.findByRole("navigation", { name: "Secciones" });
     const links = { Pipeline: "/pipeline", Series: "/series", Piezas: "/piezas" };
     for (const [name, href] of Object.entries(links)) {
       const link = await screen.findByRole("link", { name });
@@ -48,22 +112,69 @@ describe("AppRoutes", () => {
     expect(screen.getByRole("link", { name: "Pipeline" }).getAttribute("aria-current")).toBeNull();
   });
 
-  it("shows the product name and the reserved workspace slot in the header", () => {
+  it("shows the product name and the reserved workspace slot in the header", async () => {
+    stubSession(true);
     renderAt("/pipeline");
 
-    expect(screen.getByText("Contento")).toBeDefined();
+    expect(await screen.findByText("Contento")).toBeDefined();
     expect(screen.getByText("Workspace")).toBeDefined();
   });
 
-  it("performs no network calls when rendering any surface", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
+  it("signs out through /api/auth/sign-out and returns to the access screen", async () => {
+    let signedIn = true;
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      if (pathOf(input) === "/api/auth/sign-out") {
+        signedIn = false;
+        return Promise.resolve(json({ success: true }));
+      }
+      return Promise.resolve(sessionResponse(signedIn));
+    });
+    refreshSession();
+    renderAt("/pipeline");
+    await screen.findByRole("heading", { level: 1 });
 
-    for (const path of ["/pipeline", "/series", "/piezas"]) {
-      cleanup();
-      renderAt(path);
-      await screen.findByRole("heading", { level: 1 });
-    }
+    fireEvent.click(screen.getByRole("button", { name: "Salir" }));
 
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(await screen.findByRole("button", { name: "Entrar" })).toBeDefined();
+    const signOutCall = fetchSpy.mock.calls.find(([input]) => pathOf(input) === "/api/auth/sign-out");
+    expect(signOutCall?.[1]?.method).toBe("POST");
+  });
+
+  it("disables the sign-out action and declares the process while it runs", async () => {
+    let resolveSignOut: (response: Response) => void = () => undefined;
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      if (pathOf(input) === "/api/auth/sign-out") {
+        return new Promise<Response>((resolve) => {
+          resolveSignOut = resolve;
+        });
+      }
+      return Promise.resolve(sessionResponse(true));
+    });
+    refreshSession();
+    renderAt("/pipeline");
+    await screen.findByRole("heading", { level: 1 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Salir" }));
+
+    const pending = await screen.findByRole("button", { name: "Saliendo…" });
+    expect((pending as HTMLButtonElement).disabled).toBe(true);
+    resolveSignOut(json({ success: true }));
+  });
+
+  it("keeps the surfaces reachable when the sign-out request fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      if (pathOf(input) === "/api/auth/sign-out") {
+        return Promise.reject(new TypeError("network down"));
+      }
+      return Promise.resolve(sessionResponse(true));
+    });
+    refreshSession();
+    renderAt("/pipeline");
+    await screen.findByRole("heading", { level: 1 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Salir" }));
+
+    const heading = await screen.findByRole("heading", { level: 1, name: "Pipeline" });
+    expect(heading).toBeDefined();
   });
 });

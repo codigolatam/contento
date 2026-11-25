@@ -28,3 +28,7 @@ Registro de las decisiones de diseño que dan forma al proyecto. Cada decisión 
   - Disparadores: src/server/schema.ts, documento, recurso, borrador, tipo, pipeline editorial, propuestas 002 y 003
   - Resumen: Una única entidad documento con un tipo que declara su función y gobierna su ciclo de vida.
   - Estado: Aceptada
+- D006-cliente-oficial-better-auth.md
+  - Disparadores: src/web/auth-client.ts, src/web/session.tsx, useSession, signIn, signUp, signOut, /api/auth, cliente de autenticación
+  - Resumen: La web consume better-auth solo por su cliente oficial; el atom de sesión compartido reemplaza las consultas por montaje.
+  - Estado: Aceptada

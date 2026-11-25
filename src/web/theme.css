@@ -1,13 +1,16 @@
 :root {
-  --color-background: #faf9f7;
+  --color-background: #f4f1ea;
   --color-surface: #ffffff;
   --color-text: #1f1d1a;
   --color-text-muted: #6f6a63;
   --color-accent: #1f4e79;
+  --color-accent-strong: #12304c;
   --color-danger: #a62639;
   --color-border: #e3dfd9;
+  --color-border-field: #8f887d;
 
   --font-sans: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 
   --font-size-title: 20px;
@@ -37,6 +40,7 @@
   --focus-ring-offset: 2px;
   --header-height: 56px;
   --sidebar-width: 200px;
+  --access-card-width: 360px;
   --nav-item-height: 32px;
   --transition-speed: 150ms;
 }

@@ -9,3 +9,7 @@
 - **Las verificaciones que dependen de servicios externos no quedan en la suite.** Se ejecutan manualmente durante la tarea y su resultado se registra en el archivo de la tarea. La suite permanente solo contiene lo que `npm test` puede ejecutar en cualquier máquina.
   Disparadores: *.test., DATABASE_URL, Docker, servicios externos
   Origen: 20261101T134541
+
+- **La suite completa se entrega con 100% de cobertura.** El requisito permanente es 100% en statements, branches, functions y lines; presentar la suite por debajo exige corregir antes de entregar.
+  Disparadores: *.test., vitest.config, coverage
+  Origen: 20261124T213249

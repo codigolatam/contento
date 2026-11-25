@@ -171,8 +171,6 @@ export const createAuth = (
   return instance;
 };
 
-export const auth = createAuth(createDatabase("", undefined, undefined));
-
 export const mountAuth = (app: Hono, authInstance: ReturnType<typeof createAuth>) => {
   app.on(["POST", "GET"], "/api/auth/*", (c) => authInstance.handler(c.req.raw));
   app.get("/api/me", async (c) => {

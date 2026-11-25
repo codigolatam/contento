@@ -10,7 +10,7 @@ vi.mock("@hono/node-server", () => ({ serve: serveMock }));
 
 const loadServer = () => import("./server");
 
-const repoDataDir = join(import.meta.dirname, "../../.pglite-data");
+const repoDataDir = join(import.meta.dirname, "../../.pglite-data-test");
 
 describe("server entrypoint", () => {
   let dataDir: string;
@@ -74,7 +74,7 @@ describe("server entrypoint", () => {
     expect(serveMock).toHaveBeenCalledTimes(1);
   });
 
-  it("uses the repo data directory when PGLITE_DATA_DIR is not set", async () => {
+  it("uses the repo test data directory when PGLITE_DATA_DIR is not set", async () => {
     vi.unstubAllEnvs();
     testCreatedRepoDataDir = !existsSync(repoDataDir);
 

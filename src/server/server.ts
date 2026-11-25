@@ -3,6 +3,7 @@ import { createApp } from "./app";
 import { createAuth, mountAuth } from "./auth";
 import { createDatabase, migrationsFolder } from "./database";
 import { resolveDataDir } from "./data-dir";
+import { mountPipeline } from "./pipeline";
 
 const rawPort = process.env.PORT ?? "3000";
 const port = Number(rawPort);
@@ -17,6 +18,8 @@ const database = createDatabase(process.env.DATABASE_URL, migrationsFolder, pgli
 await database.migrate();
 
 const app = createApp();
-mountAuth(app, createAuth(database));
+const authInstance = createAuth(database);
+mountAuth(app, authInstance);
+mountPipeline(app, { db: database.db, auth: authInstance });
 
 serve({ fetch: app.fetch, port });

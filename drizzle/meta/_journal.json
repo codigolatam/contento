@@ -29,6 +29,13 @@
       "when": 1795162730602,
       "tag": "0003_acoustic_vanisher",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795585671721,
+      "tag": "0004_typical_tombstone",
+      "breakpoints": true
     }
   ]
 }

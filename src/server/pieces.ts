@@ -237,7 +237,7 @@ export const createDocument = async (
       })
       .returning();
     assert(row !== undefined);
-    for (const pieceId of input.pieceIds ?? []) {
+    for (const pieceId of [...(input.pieceIds ?? [])].sort()) {
       const target = await tx
         .select({ id: piece.id })
         .from(piece)

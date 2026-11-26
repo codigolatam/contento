@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import type { createAuth } from "./auth";
 import type { createDatabase } from "./database";
-import { member, organization } from "./schema";
+import { member, user as userTable } from "./schema";
 
 type Database = ReturnType<typeof createDatabase>;
 type Db = Database["db"];
@@ -52,16 +52,16 @@ const sessionActor = async (auth: Auth, db: Db, headers: Headers): Promise<Resol
     }
   }
   const [personal] = await db
-    .select({ id: organization.id })
+    .select({ id: member.organizationId })
     .from(member)
-    .innerJoin(organization, eq(member.organizationId, organization.id))
-    .where(
+    .innerJoin(
+      userTable,
       and(
-        eq(member.userId, user.id),
-        eq(organization.personal, true),
-        eq(organization.slug, `personal-${user.id}`),
+        eq(member.userId, userTable.id),
+        eq(member.organizationId, userTable.personalWorkspaceId),
       ),
-    );
+    )
+    .where(eq(member.userId, user.id));
   if (!personal) return { ok: false, status: 403, error: "forbidden" };
   return { ok: true, actor: { kind: "session", id: user.id, workspaceId: personal.id } };
 };

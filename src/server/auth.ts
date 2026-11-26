@@ -72,14 +72,21 @@ export const createPersonalWorkspace = async (adapter: Adapter, userId: string) 
     where: [{ field: "userId", value: userId }],
   });
   for (const membership of memberships) {
-    const personalWorkspace = await adapter.findOne({
+    const personalWorkspace = await adapter.findOne<{ id: string }>({
       model: "organization",
       where: [
         { field: "id", value: membership.organizationId },
         { field: "personal", value: true },
       ],
     });
-    if (personalWorkspace) return;
+    if (personalWorkspace) {
+      await adapter.update({
+        model: "user",
+        where: [{ field: "id", value: userId }],
+        update: { personalWorkspaceId: personalWorkspace.id },
+      });
+      return;
+    }
   }
   const workspace = await adapter.create<
     { name: string; slug: string; personal: boolean; createdAt: Date },
@@ -101,6 +108,11 @@ export const createPersonalWorkspace = async (adapter: Adapter, userId: string) 
       role: "owner",
       createdAt: new Date(),
     },
+  });
+  await adapter.update({
+    model: "user",
+    where: [{ field: "id", value: userId }],
+    update: { personalWorkspaceId: workspace.id },
   });
 };
 
@@ -128,6 +140,11 @@ export const createAuth = (
     secret: process.env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(database.db, { provider: "pg", transaction: true }),
     emailAndPassword: { enabled: true },
+    user: {
+      additionalFields: {
+        personalWorkspaceId: { type: "string", required: false, input: false },
+      },
+    },
     plugins: [
       organization({
         ac,

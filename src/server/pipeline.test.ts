@@ -216,13 +216,19 @@ describe("pipeline api", () => {
         { organizationId: adaPersonal, email: other.email, role: "member" },
         { cookie: ada.cookie },
       );
+      expect(inviteRes.status).toBe(200);
       const invitation = (await inviteRes.json()) as { id: string };
-      await post(
+      const acceptRes = await post(
         app,
         "/api/auth/organization/accept-invitation",
         { invitationId: invitation.id },
         { cookie: grace.cookie },
       );
+      expect(acceptRes.status).toBe(200);
+      const foreignMembership = (await database.execute(
+        `SELECT id FROM member WHERE user_id = '${grace.userId}' AND organization_id = '${adaPersonal}'`,
+      )) as { rows: { id: string }[] };
+      expect(foreignMembership.rows).toHaveLength(1);
       await post(
         app,
         "/api/auth/organization/set-active",
@@ -243,10 +249,27 @@ describe("pipeline api", () => {
       expect(piece.workspaceId).toBe(gracePersonal);
     });
 
+    it("keeps resolving the personal workspace after its slug is renamed", async () => {
+      const session = await signup(app, owner);
+      const updated = await post(
+        app,
+        "/api/auth/organization/update",
+        { organizationId: session.workspaceId, data: { slug: "renamed-studio" } },
+        { cookie: session.cookie },
+      );
+      expect(updated.status).toBe(200);
+
+      const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const piece = (await res.json()) as { workspaceId: string };
+
+      expect(res.status).toBe(201);
+      expect(piece.workspaceId).toBe(session.workspaceId);
+    });
+
     it("rejects a session whose account has no personal workspace with 403", async () => {
       const session = await signup(app, owner);
       await database.execute(
-        `UPDATE organization SET personal = false WHERE id = '${session.workspaceId}'`,
+        `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
       );
 
       const res = await get(app, "/api/pieces", { cookie: session.cookie });

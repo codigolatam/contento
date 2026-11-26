@@ -1,4 +1,4 @@
-ALTER TABLE "user" ADD COLUMN "personal_workspace_id" text;--> statement-breakpoint
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "personal_workspace_id" text;--> statement-breakpoint
 UPDATE "user" u SET "personal_workspace_id" = m."organization_id"
 FROM "member" m
 JOIN "organization" o ON o."id" = m."organization_id"

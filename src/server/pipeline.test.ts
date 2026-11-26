@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Hono } from "hono";
 import { createApp } from "./app";
@@ -104,14 +103,10 @@ const createAgentKey = (authInstance: Auth, session: Session, name = "agent") =>
 const pieceEvents = (database: Database, pieceId: string) =>
   listEvents(database.db, { entityType: "piece", entityId: pieceId });
 
-const runBackfill = async (database: Database) => {
-  const sql = readFileSync("drizzle/0005_odd_sentry.sql", "utf8");
-  const statements = sql
-    .split("--> statement-breakpoint")
-    .map((statement) => statement.trim())
-    .filter((statement) => statement.startsWith("UPDATE"));
-  for (const statement of statements) await database.execute(statement);
-};
+const unapplyLatestMigration = (database: Database) =>
+  database.execute(
+    `DELETE FROM drizzle.__drizzle_migrations WHERE id = (SELECT MAX(id) FROM drizzle.__drizzle_migrations)`,
+  );
 
 const pointerOf = async (database: Database, userId: string) => {
   const result = (await database.execute(
@@ -289,7 +284,8 @@ describe("pipeline api", () => {
         `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
       );
 
-      await runBackfill(database);
+      await unapplyLatestMigration(database);
+      await database.migrate();
 
       expect(await pointerOf(database, session.userId)).toBe(session.workspaceId);
       const res = await get(app, "/api/pieces", { cookie: session.cookie });
@@ -309,7 +305,8 @@ describe("pipeline api", () => {
         `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
       );
 
-      await runBackfill(database);
+      await unapplyLatestMigration(database);
+      await database.migrate();
 
       expect(await pointerOf(database, session.userId)).toBe(session.workspaceId);
       const res = await get(app, "/api/pieces", { cookie: session.cookie });
@@ -335,7 +332,8 @@ describe("pipeline api", () => {
         `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
       );
 
-      await runBackfill(database);
+      await unapplyLatestMigration(database);
+      await database.migrate();
 
       expect(await pointerOf(database, session.userId)).toBeNull();
       const res = await get(app, "/api/pieces", { cookie: session.cookie });

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Hono } from "hono";
 import { createApp } from "./app";
@@ -102,6 +103,22 @@ const createAgentKey = (authInstance: Auth, session: Session, name = "agent") =>
 
 const pieceEvents = (database: Database, pieceId: string) =>
   listEvents(database.db, { entityType: "piece", entityId: pieceId });
+
+const runBackfill = async (database: Database) => {
+  const sql = readFileSync("drizzle/0005_odd_sentry.sql", "utf8");
+  const statements = sql
+    .split("--> statement-breakpoint")
+    .map((statement) => statement.trim())
+    .filter((statement) => statement.startsWith("UPDATE"));
+  for (const statement of statements) await database.execute(statement);
+};
+
+const pointerOf = async (database: Database, userId: string) => {
+  const result = (await database.execute(
+    `SELECT personal_workspace_id AS pointer FROM "user" WHERE id = '${userId}'`,
+  )) as { rows: { pointer: string | null }[] };
+  return must(result.rows[0]).pointer;
+};
 
 const completePiece = async (
   app: Hono,
@@ -264,6 +281,65 @@ describe("pipeline api", () => {
 
       expect(res.status).toBe(201);
       expect(piece.workspaceId).toBe(session.workspaceId);
+    });
+
+    it("restores pipeline access for pre-migration accounts via the backfill", async () => {
+      const session = await signup(app, owner);
+      await database.execute(
+        `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
+      );
+
+      await runBackfill(database);
+
+      expect(await pointerOf(database, session.userId)).toBe(session.workspaceId);
+      const res = await get(app, "/api/pieces", { cookie: session.cookie });
+      expect(res.status).toBe(200);
+    });
+
+    it("backfills the pointer when the personal workspace slug was renamed", async () => {
+      const session = await signup(app, owner);
+      const renamed = await post(
+        app,
+        "/api/auth/organization/update",
+        { organizationId: session.workspaceId, data: { slug: "renamed-studio" } },
+        { cookie: session.cookie },
+      );
+      expect(renamed.status).toBe(200);
+      await database.execute(
+        `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
+      );
+
+      await runBackfill(database);
+
+      expect(await pointerOf(database, session.userId)).toBe(session.workspaceId);
+      const res = await get(app, "/api/pieces", { cookie: session.cookie });
+      expect(res.status).toBe(200);
+    });
+
+    it("leaves the pointer unset when personal ownership is ambiguous", async () => {
+      const session = await signup(app, owner);
+      const renamed = await post(
+        app,
+        "/api/auth/organization/update",
+        { organizationId: session.workspaceId, data: { slug: "renamed-studio" } },
+        { cookie: session.cookie },
+      );
+      expect(renamed.status).toBe(200);
+      await database.execute(
+        `INSERT INTO organization (id, name, slug, personal, created_at) VALUES ('ws-other', 'Ada', 'other', true, now())`,
+      );
+      await database.execute(
+        `INSERT INTO member (id, organization_id, user_id, role, created_at) VALUES ('m-other', 'ws-other', '${session.userId}', 'owner', now())`,
+      );
+      await database.execute(
+        `UPDATE "user" SET personal_workspace_id = NULL WHERE id = '${session.userId}'`,
+      );
+
+      await runBackfill(database);
+
+      expect(await pointerOf(database, session.userId)).toBeNull();
+      const res = await get(app, "/api/pieces", { cookie: session.cookie });
+      expect(res.status).toBe(403);
     });
 
     it("rejects a session whose account has no personal workspace with 403", async () => {

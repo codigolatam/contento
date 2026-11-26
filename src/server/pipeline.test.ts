@@ -172,6 +172,12 @@ describe("pipeline api", () => {
     it("uses the active organization when the session belongs to it", async () => {
       const session = await signup(app, owner);
       const editorial = await createWorkspace(app, session.cookie, "Editorial", "editorial");
+      await post(
+        app,
+        "/api/auth/organization/set-active",
+        { organizationId: editorial },
+        { cookie: session.cookie },
+      );
 
       const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
       const piece = (await res.json()) as { workspaceId: string };
@@ -189,6 +195,52 @@ describe("pipeline api", () => {
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(piece.workspaceId).toBe(session.workspaceId);
+    });
+
+    it("falls back to the user's own personal workspace, not a foreign personal membership", async () => {
+      const ada = await signup(app, owner);
+      const grace = await signup(app, other);
+
+      const personalOrgId = async (userId: string) => {
+        const result = (await database.execute(
+          `SELECT id FROM organization WHERE slug = 'personal-${userId}'`,
+        )) as { rows: { id: string }[] };
+        return must(result.rows[0]).id;
+      };
+      const adaPersonal = await personalOrgId(ada.userId);
+      const gracePersonal = await personalOrgId(grace.userId);
+
+      const inviteRes = await post(
+        app,
+        "/api/auth/organization/invite-member",
+        { organizationId: adaPersonal, email: other.email, role: "member" },
+        { cookie: ada.cookie },
+      );
+      const invitation = (await inviteRes.json()) as { id: string };
+      await post(
+        app,
+        "/api/auth/organization/accept-invitation",
+        { invitationId: invitation.id },
+        { cookie: grace.cookie },
+      );
+      await post(
+        app,
+        "/api/auth/organization/set-active",
+        { organizationId: null },
+        { cookie: grace.cookie },
+      );
+
+      await database.execute(
+        `DELETE FROM member WHERE user_id = '${grace.userId}' AND organization_id = '${gracePersonal}'`,
+      );
+      await database.execute(
+        `INSERT INTO member (id, organization_id, user_id, role, created_at) VALUES ('grace-personal', '${gracePersonal}', '${grace.userId}', 'owner', now())`,
+      );
+
+      const res = await post(app, "/api/pieces", {}, { cookie: grace.cookie });
+      const piece = (await res.json()) as { workspaceId: string };
+
+      expect(piece.workspaceId).toBe(gracePersonal);
     });
 
     it("rejects a session whose account has no personal workspace with 403", async () => {
@@ -316,6 +368,19 @@ describe("pipeline api", () => {
 
       expect(detail.piece.maturity).toBe(3);
       expect(detail.piece.missing).toEqual(["topic"]);
+    });
+
+    it("reports every requirement as missing on an empty piece", async () => {
+      const session = await signup(app, owner);
+      const created = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const piece = (await created.json()) as { id: string };
+
+      const detail = (await (
+        await get(app, `/api/pieces/${piece.id}`, { cookie: session.cookie })
+      ).json()) as { piece: { missing: string[]; maturity: number } };
+
+      expect(detail.piece.missing).toEqual(["topic", "readerQuestion", "angle", "support"]);
+      expect(detail.piece.maturity).toBe(0);
     });
 
     it("returns the detail with linked documents, maturity and missing requirements", async () => {

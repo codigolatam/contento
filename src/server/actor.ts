@@ -52,12 +52,18 @@ const sessionActor = async (auth: Auth, db: Db, headers: Headers): Promise<Resol
     }
   }
   const [personal] = await db
-    .select({ organizationId: member.organizationId })
+    .select({ id: organization.id })
     .from(member)
     .innerJoin(organization, eq(member.organizationId, organization.id))
-    .where(and(eq(member.userId, user.id), eq(organization.personal, true)));
+    .where(
+      and(
+        eq(member.userId, user.id),
+        eq(organization.personal, true),
+        eq(organization.slug, `personal-${user.id}`),
+      ),
+    );
   if (!personal) return { ok: false, status: 403, error: "forbidden" };
-  return { ok: true, actor: { kind: "session", id: user.id, workspaceId: personal.organizationId } };
+  return { ok: true, actor: { kind: "session", id: user.id, workspaceId: personal.id } };
 };
 
 const apiKeyActor = async (auth: Auth, headers: Headers): Promise<Resolution> => {

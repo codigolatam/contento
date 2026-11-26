@@ -9,12 +9,12 @@ import {
   createDocument,
   createPiece,
   deleteDocument,
-  findPiece,
   getPiece,
   linkDocument,
   listDocuments,
   listPieces,
-  lockedPiecesForDocument,
+  lockDocumentPieces,
+  lockPiece,
   unlinkDocument,
   updatePieceFields,
   type PieceFields,
@@ -168,11 +168,13 @@ export const mountPipeline = (app: Hono, deps: { db: Db; auth: Auth }) => {
     "/api/documents/:id",
     handle(async (c) => {
       const documentId = param(c, "id");
-      const locked = await lockedPiecesForDocument(db, actor(c).workspaceId, documentId);
-      if (actor(c).kind === "api-key" && locked.length > 0) {
-        return c.json({ error: "forbidden" }, 403);
-      }
-      await deleteDocument(db, actor(c).workspaceId, documentId);
+      await db.transaction(async (tx) => {
+        const linked = await lockDocumentPieces(tx, actor(c).workspaceId, documentId);
+        if (actor(c).kind === "api-key" && linked.some((p) => p.status !== "proposal")) {
+          throw new HttpError(403, "forbidden");
+        }
+        await deleteDocument(tx, actor(c).workspaceId, documentId);
+      });
       return c.body(null, 204);
     }),
   );
@@ -198,11 +200,13 @@ export const mountPipeline = (app: Hono, deps: { db: Db; auth: Auth }) => {
     "/api/pieces/:id/links/:documentId",
     handle(async (c) => {
       const pieceId = param(c, "id");
-      const target = await findPiece(db, actor(c).workspaceId, pieceId);
-      if (target.status !== "proposal" && actor(c).kind === "api-key") {
-        return c.json({ error: "forbidden" }, 403);
-      }
-      await unlinkDocument(db, pieceId, param(c, "documentId"));
+      await db.transaction(async (tx) => {
+        const target = await lockPiece(tx, actor(c).workspaceId, pieceId);
+        if (target.status !== "proposal" && actor(c).kind === "api-key") {
+          throw new HttpError(403, "forbidden");
+        }
+        await unlinkDocument(tx, pieceId, param(c, "documentId"));
+      });
       return c.body(null, 204);
     }),
   );

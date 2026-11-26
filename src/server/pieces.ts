@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { randomUUID } from "node:crypto";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { createDatabase } from "./database";
 import { recordEvent } from "./events";
 import { document, piece, pieceDocument } from "./schema";
@@ -21,8 +21,18 @@ export type PieceStatus = (typeof PIECE_STATUSES)[number];
 export const DOCUMENT_TYPES = ["resource", "draft"] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
-export const REQUIREMENTS = ["topic", "readerQuestion", "angle", "support"] as const;
-export type Requirement = (typeof REQUIREMENTS)[number];
+interface RequirementContext {
+  row: PieceRow;
+  support: number;
+}
+
+export const REQUIREMENTS = [
+  { id: "topic", satisfied: ({ row }: RequirementContext) => Boolean(row.topic?.trim()) },
+  { id: "readerQuestion", satisfied: ({ row }: RequirementContext) => Boolean(row.readerQuestion?.trim()) },
+  { id: "angle", satisfied: ({ row }: RequirementContext) => Boolean(row.angle?.trim()) },
+  { id: "support", satisfied: ({ support }: RequirementContext) => support > 0 },
+] as const;
+export type Requirement = (typeof REQUIREMENTS)[number]["id"];
 
 export class HttpError extends Error {
   constructor(
@@ -56,14 +66,23 @@ const cleanFields = (fields: PieceFields) => ({
   ...(fields.angle !== undefined ? { angle: cleanField(fields.angle) } : {}),
 });
 
-export const findPiece = async (db: DbHandle, workspaceId: string, pieceId: string) => {
-  const [row] = await db
+const pieceById = (db: DbHandle, workspaceId: string, pieceId: string) =>
+  db
     .select()
     .from(piece)
     .where(and(eq(piece.id, pieceId), eq(piece.workspaceId, workspaceId)));
+
+const requirePiece = async (rows: Promise<PieceRow[]>) => {
+  const [row] = await rows;
   if (!row) throw new HttpError(404, "piece_not_found");
   return row;
 };
+
+export const findPiece = (db: DbHandle, workspaceId: string, pieceId: string) =>
+  requirePiece(pieceById(db, workspaceId, pieceId));
+
+export const lockPiece = (db: DbHandle, workspaceId: string, pieceId: string) =>
+  requirePiece(pieceById(db, workspaceId, pieceId).for("update"));
 
 const supportCount = async (db: DbHandle, pieceId: string) => {
   const rows = await db
@@ -74,14 +93,10 @@ const supportCount = async (db: DbHandle, pieceId: string) => {
   return rows.length;
 };
 
-export const missingRequirements = (row: PieceRow, support: number): Requirement[] => {
-  const missing: Requirement[] = [];
-  if (!row.topic?.trim()) missing.push("topic");
-  if (!row.readerQuestion?.trim()) missing.push("readerQuestion");
-  if (!row.angle?.trim()) missing.push("angle");
-  if (support === 0) missing.push("support");
-  return missing;
-};
+export const missingRequirements = (row: PieceRow, support: number): Requirement[] =>
+  REQUIREMENTS.filter((requirement) => !requirement.satisfied({ row, support })).map(
+    (requirement) => requirement.id,
+  );
 
 export const maturityOf = (row: PieceRow, support: number) =>
   REQUIREMENTS.length - missingRequirements(row, support).length;
@@ -149,26 +164,28 @@ export const getPiece = async (db: DbHandle, workspaceId: string, pieceId: strin
 };
 
 export const updatePieceFields = async (
-  db: DbHandle,
+  db: Db,
   workspaceId: string,
   pieceId: string,
   fields: PieceFields,
-) => {
-  const existing = await findPiece(db, workspaceId, pieceId);
-  if (existing.fieldsFrozen) throw new HttpError(409, "fields_frozen");
-  const updates = cleanFields(fields);
-  if (Object.keys(updates).length === 0) return existing;
-  const [row] = await db
-    .update(piece)
-    .set({ ...updates, updatedAt: new Date() })
-    .where(eq(piece.id, existing.id))
-    .returning();
-  return row;
-};
+) =>
+  db.transaction(async (tx) => {
+    const existing = await lockPiece(tx, workspaceId, pieceId);
+    if (existing.fieldsFrozen) throw new HttpError(409, "fields_frozen");
+    const updates = cleanFields(fields);
+    if (Object.keys(updates).length === 0) return existing;
+    const [row] = await tx
+      .update(piece)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(piece.id, existing.id))
+      .returning();
+    assert(row !== undefined);
+    return row;
+  });
 
 export const approvePiece = async (db: Db, workspaceId: string, pieceId: string, actor: string) =>
   db.transaction(async (tx) => {
-    const existing = await findPiece(tx, workspaceId, pieceId);
+    const existing = await lockPiece(tx, workspaceId, pieceId);
     if (existing.status !== "proposal") {
       throw new HttpError(409, "invalid_transition", { from: existing.status });
     }
@@ -263,18 +280,14 @@ export const findDocument = async (db: DbHandle, workspaceId: string, documentId
   return row;
 };
 
-export const lockedPiecesForDocument = async (db: DbHandle, workspaceId: string, documentId: string) =>
+export const lockDocumentPieces = (db: DbHandle, workspaceId: string, documentId: string) =>
   db
     .select({ id: piece.id, status: piece.status })
     .from(pieceDocument)
     .innerJoin(piece, eq(pieceDocument.pieceId, piece.id))
-    .where(
-      and(
-        eq(pieceDocument.documentId, documentId),
-        eq(piece.workspaceId, workspaceId),
-        ne(piece.status, "proposal"),
-      ),
-    );
+    .where(and(eq(pieceDocument.documentId, documentId), eq(piece.workspaceId, workspaceId)))
+    .orderBy(asc(piece.id))
+    .for("update");
 
 export const deleteDocument = async (db: DbHandle, workspaceId: string, documentId: string) => {
   const existing = await findDocument(db, workspaceId, documentId);

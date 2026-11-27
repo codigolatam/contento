@@ -191,7 +191,7 @@ export const piece = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     status: text("status").notNull().default("proposal"),
-    topic: text("topic"),
+    topic: text("topic").notNull(),
     readerQuestion: text("reader_question"),
     angle: text("angle"),
     fieldsFrozen: boolean("fields_frozen").default(false).notNull(),

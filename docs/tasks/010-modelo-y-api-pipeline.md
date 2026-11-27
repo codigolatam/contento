@@ -41,8 +41,9 @@ puerta humana. Toda superficie posterior consume esta API.
   título, cuerpo, congelado) y el enlace pieza↔recurso.
   El enum de estados incluye `descartada` desde el principio
   aunque aún sea inalcanzable.
-- API: crear pieza (nace en `propuesta`), editar campos antes de
-  congelar, crear recurso, ligar, desligar y borrar, y la
+- API: crear pieza con `topic` obligatorio (nace en `propuesta`),
+  editar campos antes de congelar —sin dejar el tema vacío—, crear
+  recurso, ligar, desligar y borrar, y la
   transición `aprobar` —que verifica los cuatro requisitos,
   enumera los faltantes, congela los campos y registra el evento
   con el actor—.
@@ -158,7 +159,8 @@ Decisiones transversales del plan:
 
 **CU-1 — Crear pieza:**
 
-- Crear pieza con sesión → 201, `status: proposal`, campos nulos y evento `piece.created` con actor `user:{id}` (O)
+- Crear pieza con sesión → 201, `status: proposal`, `topic` persistido y evento `piece.created` con actor `user:{id}` (O)
+- Crear pieza sin `topic` usable → 400 (B)
 - Crear pieza con clave → mismo resultado con actor `api-key:{id}` (I)
 - Crear con campos iniciales → persisten (I)
 - Listar un workspace sin piezas → `[]` (Z)
@@ -166,14 +168,14 @@ Decisiones transversales del plan:
 **CU-2 — Madurar la idea:**
 
 - Editar campos antes de congelar → 200 y la madurez crece (O)
-- La madurez cuenta tema + pregunta del lector + ángulo + al menos un recurso: progresa 0→1→2→3→4 (M, B)
+- La madurez cuenta tema + pregunta del lector + ángulo + al menos un recurso: progresa 1→2→3→4 desde el alta (M, B)
 - Editar campos de una pieza congelada → 409 sin cambio (B)
 - El detalle devuelve `missing[]` con lo que falta para la puerta (I)
 
 **CU-3 — Aprobar la idea:**
 
 - Aprobar con requisitos faltantes → 409 enumerando `missing`, sin cambio de estado (E)
-- Campos presentes pero en blanco cuentan como faltantes (B)
+- Pregunta del lector y ángulo presentes pero en blanco cuentan como faltantes; el tema no puede quedar vacío (B)
 - Aprobar completa → `idea_approved`, `fields_frozen` y evento `piece.approved` con el snapshot de campos y el actor (O)
 - Aprobar con clave de API → 403 (B)
 - Re-aprobar una pieza ya aprobada → 409 (E)

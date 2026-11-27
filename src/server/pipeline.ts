@@ -78,9 +78,12 @@ export const mountPipeline = (app: Hono, deps: { db: Db; auth: Auth }) => {
     "/api/pieces",
     handle(async (c) => {
       const body = await parseBody(c);
+      if (typeof body.topic !== "string" || body.topic.trim() === "") {
+        throw new HttpError(400, "invalid_topic");
+      }
       const row = await createPiece(
         db,
-        { workspaceId: actor(c).workspaceId, ...pieceFields(body) },
+        { workspaceId: actor(c).workspaceId, ...pieceFields(body), topic: body.topic },
         actorLabel(actor(c)),
       );
       return c.json(row, 201);
@@ -101,11 +104,15 @@ export const mountPipeline = (app: Hono, deps: { db: Db; auth: Auth }) => {
     "/api/pieces/:id",
     handle(async (c) => {
       const body = await parseBody(c);
+      const fields = pieceFields(body);
+      if (fields.topic?.trim() === "") {
+        throw new HttpError(400, "invalid_topic");
+      }
       const row = await updatePieceFields(
         db,
         actor(c).workspaceId,
         param(c, "id"),
-        pieceFields(body),
+        fields,
       );
       return c.json(row);
     }),

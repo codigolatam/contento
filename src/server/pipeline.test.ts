@@ -120,7 +120,7 @@ const completePiece = async (
   auth: { cookie?: string; apiKey?: string },
   fields: Record<string, string> = {},
 ) => {
-  const created = await post(app, "/api/pieces", fields, auth);
+  const created = await post(app, "/api/pieces", { topic: "topic", ...fields }, auth);
   expect(created.status).toBe(201);
   const piece = (await created.json()) as { id: string };
   const patched = await patch(
@@ -174,7 +174,7 @@ describe("pipeline api", () => {
     it("resolves the personal workspace for a session without active organization", async () => {
       const session = await signup(app, owner);
 
-      const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(res.status).toBe(201);
@@ -191,7 +191,7 @@ describe("pipeline api", () => {
         { cookie: session.cookie },
       );
 
-      const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(piece.workspaceId).toBe(editorial);
@@ -203,7 +203,7 @@ describe("pipeline api", () => {
         `UPDATE session SET active_organization_id = 'foreign-org' WHERE user_id = '${session.userId}'`,
       );
 
-      const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(piece.workspaceId).toBe(session.workspaceId);
@@ -255,7 +255,7 @@ describe("pipeline api", () => {
         `INSERT INTO member (id, organization_id, user_id, role, created_at) VALUES ('grace-personal', '${gracePersonal}', '${grace.userId}', 'owner', now())`,
       );
 
-      const res = await post(app, "/api/pieces", {}, { cookie: grace.cookie });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { cookie: grace.cookie });
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(piece.workspaceId).toBe(gracePersonal);
@@ -271,7 +271,7 @@ describe("pipeline api", () => {
       );
       expect(updated.status).toBe(200);
 
-      const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(res.status).toBe(201);
@@ -356,7 +356,7 @@ describe("pipeline api", () => {
       const session = await signup(app, owner);
       const key = await createAgentKey(authInstance, session);
 
-      const res = await post(app, "/api/pieces", {}, { apiKey: key.key });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { apiKey: key.key });
       const piece = (await res.json()) as { workspaceId: string };
 
       expect(res.status).toBe(201);
@@ -372,7 +372,7 @@ describe("pipeline api", () => {
       const res = await post(
         app,
         "/api/pieces",
-        {},
+        { topic: "topic" },
         { cookie: session.cookie, apiKey: foreignKey.key },
       );
       const piece = (await res.json()) as { workspaceId: string };
@@ -385,23 +385,33 @@ describe("pipeline api", () => {
     it("creates a piece born in proposal and records the event with the actor", async () => {
       const session = await signup(app, owner);
 
-      const res = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const res = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await res.json()) as {
         id: string;
         status: string;
-        topic: string | null;
+        topic: string;
         fieldsFrozen: boolean;
       };
 
       expect(res.status).toBe(201);
       expect(piece.status).toBe("proposal");
-      expect(piece.topic).toBeNull();
+      expect(piece.topic).toBe("topic");
       expect(piece.fieldsFrozen).toBe(false);
 
       const events = await pieceEvents(database, piece.id);
       expect(events).toHaveLength(1);
       expect(must(events[0]).type).toBe("piece.created");
       expect(must(events[0]).actor).toBe(`user:${session.userId}`);
+    });
+
+    it("rejects creation without a usable topic", async () => {
+      const session = await signup(app, owner);
+
+      for (const body of [{}, { topic: "" }, { topic: "   " }, { topic: 7 }]) {
+        const res = await post(app, "/api/pieces", body, { cookie: session.cookie });
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({ error: "invalid_topic" });
+      }
     });
 
     it("creates a piece with initial fields and records the api key actor", async () => {
@@ -411,12 +421,14 @@ describe("pipeline api", () => {
       const res = await post(
         app,
         "/api/pieces",
-        { topic: "Initial topic" },
+        { topic: "Initial topic", readerQuestion: "Initial question", angle: "Initial angle" },
         { apiKey: key.key },
       );
-      const piece = (await res.json()) as { id: string; topic: string };
+      const piece = (await res.json()) as { id: string; topic: string; readerQuestion: string; angle: string };
 
       expect(piece.topic).toBe("Initial topic");
+      expect(piece.readerQuestion).toBe("Initial question");
+      expect(piece.angle).toBe("Initial angle");
       const events = await pieceEvents(database, piece.id);
       expect(must(events[0]).actor).toBe(`api-key:${key.id}`);
     });
@@ -432,13 +444,13 @@ describe("pipeline api", () => {
 
     it("edits fields before freezing and grows the maturity", async () => {
       const session = await signup(app, owner);
-      const created = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const created = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await created.json()) as { id: string };
 
       const empty = (await (await get(app, "/api/pieces", { cookie: session.cookie })).json()) as {
         maturity: number;
       }[];
-      expect(must(empty[0]).maturity).toBe(0);
+      expect(must(empty[0]).maturity).toBe(1);
 
       const edited = await patch(
         app,
@@ -457,27 +469,27 @@ describe("pipeline api", () => {
     it("treats blank fields as missing for maturity", async () => {
       const session = await signup(app, owner);
       const pieceId = await completePiece(app, { cookie: session.cookie });
-      await patch(app, `/api/pieces/${pieceId}`, { topic: "   " }, { cookie: session.cookie });
+      await patch(app, `/api/pieces/${pieceId}`, { readerQuestion: "   " }, { cookie: session.cookie });
 
       const detail = (await (
         await get(app, `/api/pieces/${pieceId}`, { cookie: session.cookie })
       ).json()) as { piece: { maturity: number; missing: string[] } };
 
       expect(detail.piece.maturity).toBe(3);
-      expect(detail.piece.missing).toEqual(["topic"]);
+      expect(detail.piece.missing).toEqual(["readerQuestion"]);
     });
 
-    it("reports every requirement as missing on an empty piece", async () => {
+    it("reports the missing requirements on a new piece", async () => {
       const session = await signup(app, owner);
-      const created = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const created = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await created.json()) as { id: string };
 
       const detail = (await (
         await get(app, `/api/pieces/${piece.id}`, { cookie: session.cookie })
       ).json()) as { piece: { missing: string[]; maturity: number } };
 
-      expect(detail.piece.missing).toEqual(["topic", "readerQuestion", "angle", "support"]);
-      expect(detail.piece.maturity).toBe(0);
+      expect(detail.piece.missing).toEqual(["readerQuestion", "angle", "support"]);
+      expect(detail.piece.maturity).toBe(1);
     });
 
     it("returns the detail with linked documents, maturity and missing requirements", async () => {
@@ -524,9 +536,21 @@ describe("pipeline api", () => {
       expect(updated.topic).toBe("kept");
     });
 
+    it("rejects blanking the topic with 400", async () => {
+      const session = await signup(app, owner);
+      const created = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
+      const piece = (await created.json()) as { id: string };
+
+      for (const body of [{ topic: "" }, { topic: "   " }]) {
+        const res = await patch(app, `/api/pieces/${piece.id}`, body, { cookie: session.cookie });
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({ error: "invalid_topic" });
+      }
+    });
+
     it("rejects non-string field values with 400", async () => {
       const session = await signup(app, owner);
-      const created = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const created = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await created.json()) as { id: string };
 
       const res = await patch(
@@ -555,7 +579,7 @@ describe("pipeline api", () => {
     it("returns 404 for pieces of another workspace", async () => {
       const session = await signup(app, owner);
       const foreign = await signup(app, other);
-      const created = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const created = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const piece = (await created.json()) as { id: string };
 
       const list = await get(app, "/api/pieces", { cookie: foreign.cookie });
@@ -670,8 +694,8 @@ describe("pipeline api", () => {
 
     it("creates a resource already linked to pieces", async () => {
       const session = await signup(app, owner);
-      const first = await post(app, "/api/pieces", {}, { cookie: session.cookie });
-      const secondPiece = await post(app, "/api/pieces", {}, { cookie: session.cookie });
+      const first = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
+      const secondPiece = await post(app, "/api/pieces", { topic: "topic" }, { cookie: session.cookie });
       const firstId = ((await first.json()) as { id: string }).id;
       const secondId = ((await secondPiece.json()) as { id: string }).id;
 

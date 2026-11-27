@@ -13,7 +13,7 @@ CREATE TABLE "piece" (
 	"id" text PRIMARY KEY NOT NULL,
 	"workspace_id" text NOT NULL,
 	"status" text DEFAULT 'proposal' NOT NULL,
-	"topic" text,
+	"topic" text NOT NULL,
 	"reader_question" text,
 	"angle" text,
 	"fields_frozen" boolean DEFAULT false NOT NULL,

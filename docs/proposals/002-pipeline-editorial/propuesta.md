@@ -36,9 +36,11 @@ entre ellos, visible en un kanban.
 La pieza como unidad de trabajo nace en `propuesta` y recorre el
 pipeline `propuesta → idea aprobada → en redacción → lista`,
 estados fijos del workspace en el MVP, más `descartada` como estado
-terminal. La revisión no es un estado propio: cicla dentro de la
-redacción —la retroalimentación devuelve a escribir sin salir del
-estado.
+terminal. El alta exige una primera formulación del tema —provisional
+y editable hasta la puerta— que da nombre visible a la tarjeta: sin
+ella la pieza sería anónima en el kanban. La revisión no es un estado
+propio: cicla dentro de la redacción —la retroalimentación devuelve a
+escribir sin salir del estado.
 
 **Puerta `propuesta → idea aprobada`** — la ficha de la pieza en
 `propuesta` es su pantalla de maduración: la persona (o el agente,
@@ -109,9 +111,9 @@ empezar la redacción, escribir— lo puede hacer el agente: la
 máquina prepara, la persona decide.
 
 El kanban del pipeline es la superficie de trabajo: cuatro
-columnas, la tarjeta muestra la madurez de la propuesta (`n/4`
-requisitos) y, en cada ficha, la sección de puerta con lo que falta
-para el siguiente estado.
+columnas, la tarjeta muestra el tema provisional y la madurez de la
+propuesta (`n/4` requisitos) y, en cada ficha, la sección de puerta
+con lo que falta para el siguiente estado.
 
 La pantalla de acceso —registro y entrada por la interfaz, que hoy
 no existe— es prerrequisito de cualquier superficie dirigida a

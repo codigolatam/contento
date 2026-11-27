@@ -27,7 +27,7 @@ interface RequirementContext {
 }
 
 export const REQUIREMENTS = [
-  { id: "topic", satisfied: ({ row }: RequirementContext) => Boolean(row.topic?.trim()) },
+  { id: "topic", satisfied: ({ row }: RequirementContext) => Boolean(row.topic.trim()) },
   { id: "readerQuestion", satisfied: ({ row }: RequirementContext) => Boolean(row.readerQuestion?.trim()) },
   { id: "angle", satisfied: ({ row }: RequirementContext) => Boolean(row.angle?.trim()) },
   { id: "support", satisfied: ({ support }: RequirementContext) => support > 0 },
@@ -59,7 +59,7 @@ const cleanField = (value: string | undefined) => {
 };
 
 const cleanFields = (fields: PieceFields) => ({
-  ...(fields.topic !== undefined ? { topic: cleanField(fields.topic) } : {}),
+  ...(fields.topic !== undefined ? { topic: fields.topic.trim() } : {}),
   ...(fields.readerQuestion !== undefined
     ? { readerQuestion: cleanField(fields.readerQuestion) }
     : {}),
@@ -103,7 +103,7 @@ export const maturityOf = (row: PieceRow, support: number) =>
 
 export const createPiece = async (
   db: Db,
-  input: { workspaceId: string } & PieceFields,
+  input: { workspaceId: string; topic: string } & PieceFields,
   actor: string,
 ) =>
   db.transaction(async (tx) => {
@@ -113,6 +113,7 @@ export const createPiece = async (
         id: randomUUID(),
         workspaceId: input.workspaceId,
         ...cleanFields(input),
+        topic: input.topic.trim(),
       })
       .returning();
     assert(row !== undefined);

@@ -816,7 +816,7 @@
           "name": "topic",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "reader_question": {
           "name": "reader_question",

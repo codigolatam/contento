@@ -19,3 +19,9 @@ Notas de lecciones aprendidas de las correcciones del usuario. Cada tema es un a
 - diseno-visual.md
   - Disparadores: src/web/, *.css, DESIGN.md, tokens, breakpoint, captura, Firefox
   - Resumen: Los valores estéticos se razonan por proporción chrome/contenido y se validan renderizados; los defaults convencionales no sustituyen la evidencia.
+- semantica-del-dominio.md
+  - Disparadores: documento, recurso, enlace, link, pipeline editorial, src/server/schema.ts, migraciones
+  - Resumen: Las palabras ambiguas del dominio no se materializan como campos técnicos sin confirmar su referente.
+- identidad-humana-del-dominio.md
+  - Disparadores: src/server/schema.ts, kanban, tarjeta, creación, UX, identificador, null, título, tema
+  - Resumen: Las entidades visibles necesitan un identificador humano obligatorio desde su creación.

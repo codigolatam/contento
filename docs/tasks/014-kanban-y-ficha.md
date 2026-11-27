@@ -33,8 +33,9 @@ posteriores y declara el workspace activo en la interfaz.
 
 - Workspace activo en la interfaz: las vistas saben qué workspace
   muestran —declarado aquí si la tarea 009 no lo deja resuelto—.
-- Kanban con las cuatro columnas, acción «Nueva pieza» y tarjetas
-  que muestran la madurez `n/4` servida por el servidor.
+- Kanban con las cuatro columnas, acción «Nueva pieza» que pide el
+  tema provisional y tarjetas que lo muestran junto a la madurez `n/4`
+  servida por el servidor.
 - Ficha de la pieza: en `propuesta` es la pantalla de maduración
   —los tres campos editables, ligar recursos existentes o
   crearlos inline ya ligados, botón «Aprobar» con la enumeración

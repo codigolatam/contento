@@ -8,6 +8,7 @@ import {
   bigserial,
   jsonb,
   index,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -16,6 +17,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  personalWorkspaceId: text("personal_workspace_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -181,6 +183,64 @@ export const event = pgTable(
   (table) => [index("event_entity_idx").on(table.entityType, table.entityId)],
 );
 
+export const piece = pgTable(
+  "piece",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("proposal"),
+    topic: text("topic").notNull(),
+    readerQuestion: text("reader_question"),
+    angle: text("angle"),
+    fieldsFrozen: boolean("fields_frozen").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("piece_workspace_status_idx").on(table.workspaceId, table.status)],
+);
+
+export const document = pgTable(
+  "document",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    frozen: boolean("frozen").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("document_workspace_type_idx").on(table.workspaceId, table.type)],
+);
+
+export const pieceDocument = pgTable(
+  "piece_document",
+  {
+    pieceId: text("piece_id")
+      .notNull()
+      .references(() => piece.id, { onDelete: "cascade" }),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => document.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.pieceId, table.documentId] }),
+    index("piece_document_document_idx").on(table.documentId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -226,5 +286,32 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
   user: one(user, {
     fields: [invitation.inviterId],
     references: [user.id],
+  }),
+}));
+
+export const pieceRelations = relations(piece, ({ one, many }) => ({
+  workspace: one(organization, {
+    fields: [piece.workspaceId],
+    references: [organization.id],
+  }),
+  documents: many(pieceDocument),
+}));
+
+export const documentRelations = relations(document, ({ one, many }) => ({
+  workspace: one(organization, {
+    fields: [document.workspaceId],
+    references: [organization.id],
+  }),
+  pieces: many(pieceDocument),
+}));
+
+export const pieceDocumentRelations = relations(pieceDocument, ({ one }) => ({
+  piece: one(piece, {
+    fields: [pieceDocument.pieceId],
+    references: [piece.id],
+  }),
+  document: one(document, {
+    fields: [pieceDocument.documentId],
+    references: [document.id],
   }),
 }));

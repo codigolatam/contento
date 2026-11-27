@@ -21,7 +21,7 @@
 ## Hito 2: Pipeline editorial con puertas
 <!-- épica: docs/epics/002-pipeline-editorial.md -->
 
-- [ ] docs/tasks/010-modelo-y-api-pipeline.md — Modelo y API del pipeline editorial
+- [r] docs/tasks/010-modelo-y-api-pipeline.md — Modelo y API del pipeline editorial
 - [ ] docs/tasks/011-escribir-el-borrador.md — Escribir el borrador: de `idea aprobada` a `lista`
 - [ ] docs/tasks/012-retroceso-y-descarte.md — Retroceso, reapertura y descarte
 - [ ] docs/tasks/013-seccion-recursos.md — Sección de recursos del workspace

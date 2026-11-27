@@ -48,3 +48,17 @@
   Obtenido: La suite se presentó con cobertura por debajo del 100% exigido.
   Corrección: Mantener el 100% de cobertura como requisito permanente de las pruebas.
   Estado: consolidada
+
+- Id: 20261127T152334
+  Tarea: docs/tasks/010-modelo-y-api-pipeline.md
+  Esperado: El enlace pieza↔recurso se entiende como la relación entre ambos documentos y el recurso queda como texto de título y nota.
+  Obtenido: Se interpretó «enlace» como una URL externa y se añadió `document.link` al esquema, la migración, la API y los artefactos.
+  Corrección: Confirmar el referente de una palabra ambigua del dominio antes de materializarla como campo técnico; aquí «enlace» nombra la relación pieza-recurso, no una URL.
+  Estado: consolidada
+
+- Id: 20261127T155223
+  Tarea: docs/tasks/010-modelo-y-api-pipeline.md
+  Esperado: Las piezas nacen con un identificador humano visible que permita reconocerlas en el kanban y operarlas.
+  Obtenido: El modelo permitía crear piezas con topic, readerQuestion y angle nulos, produciendo tarjetas anónimas indistinguibles.
+  Corrección: Exigir un tema provisional no vacío al crear la pieza y no permitir vaciarlo; usar ese tema como identidad humana editable hasta la aprobación.
+  Estado: consolidada

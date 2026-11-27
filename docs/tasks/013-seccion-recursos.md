@@ -25,9 +25,9 @@ post-puerta.
 
 ## Resultado esperado
 
-- API: listar los recursos del workspace con sus enlaces y editar
-  el recurso —título, nota, enlace— (crear, ligar, desligar y
-  borrar ya existen desde el borrador 01).
+- API: listar los recursos del workspace con sus relaciones y editar
+  el recurso —título y nota— (crear, ligar, desligar y borrar ya
+  existen desde el borrador 01).
 - Sección que lista los recursos mostrando todas las piezas que
   cada uno sostiene.
 - Creación desde la sección, suelta o ya ligada a una pieza.
@@ -41,13 +41,13 @@ post-puerta.
 - Un recurso compartido muestra todas sus piezas.
 - La superficie no ofrece desligar ni borrar soporte de pieza
   aprobada sin sesión, coherente con la API.
-- Borrar un recurso elimina el documento con sus enlaces.
+- Borrar un recurso elimina el documento con sus relaciones.
 - La interfaz usa solo tokens de la guía de estilo.
 
 ## Procedimiento sugerido
 
-1. Endpoints de listado de recursos con enlaces y de edición.
-2. Sección con lista, creación, edición y gestión de enlaces.
+1. Endpoints de listado de recursos con relaciones y de edición.
+2. Sección con lista, creación, edición y gestión de relaciones.
 3. Suite de la superficie y sus reglas de permiso por estado de la
    pieza.
 

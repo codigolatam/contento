@@ -56,12 +56,12 @@ requisitos de la puerta:
 El recurso es un documento del workspace que vive de forma
 independiente y se comparte: la misma fuente puede sostener varias
 piezas. Se crea desde la ficha de la pieza o en la sección de
-recursos del workspace, donde puede nacer ya ligado —el enlace es
+recursos del workspace, donde puede nacer ya ligado —la relación es
 dato, no superficie— o quedar suelto para ligarlo después. Ligar y
 desligar es libre mientras la pieza sigue en `propuesta`; una vez
 aprobada, ligar sigue libre —el material puede seguir creciendo—
 pero desligar recursos o borrarlos exige actor de sesión. Borrar un
-recurso elimina el documento con sus enlaces. Los documentos del
+recurso elimina el documento con sus relaciones. Los documentos del
 workspace llevan un tipo que declara su función —`recurso`,
 `borrador`, …— y ese tipo gobierna su ciclo de vida.
 
@@ -161,7 +161,7 @@ personas y va como tarea previa independiente.
 - Informe de revisión como entidad y comentarios anclados al
   borrador.
 - Biblioteca de recursos con carga de archivos: el recurso del MVP
-  es texto —título, nota, enlace—.
+  es texto —título y nota—.
 - Analítica de etapa: los eventos ya quedan registrados, la vista
   llega después.
 

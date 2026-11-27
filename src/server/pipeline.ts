@@ -129,17 +129,15 @@ export const mountPipeline = (app: Hono, deps: { db: Db; auth: Auth }) => {
     "/api/documents",
     handle(async (c) => {
       const body = await parseBody(c);
-      const { type, title, body: text, link, pieceIds } = body;
+      const { type, title, body: text, pieceIds } = body;
       if (type !== undefined && type !== "resource") {
         throw new HttpError(400, "invalid_document_type");
       }
       if (typeof title !== "string" || title.trim() === "") {
         throw new HttpError(400, "invalid_title");
       }
-      for (const key of ["body", "link"] as const) {
-        if (body[key] !== undefined && typeof body[key] !== "string") {
-          throw new HttpError(400, "invalid_field", { field: key });
-        }
+      if (body.body !== undefined && typeof body.body !== "string") {
+        throw new HttpError(400, "invalid_field", { field: "body" });
       }
       if (
         pieceIds !== undefined &&
@@ -152,7 +150,6 @@ export const mountPipeline = (app: Hono, deps: { db: Db; auth: Auth }) => {
         type: "resource",
         title,
         body: text as string | undefined,
-        link: link as string | undefined,
         pieceIds: pieceIds as string[] | undefined,
       });
       return c.json(row, 201);

@@ -38,7 +38,7 @@ puerta humana. Toda superficie posterior consume esta API.
   rutas de dominio se montan sobre ella.
 - Modelo: `pieza` (workspace, estado, tema, pregunta del lector,
   ángulo, campos congelados), `documento` (workspace, tipo,
-  título, cuerpo, enlace, congelado) y el enlace pieza↔recurso.
+  título, cuerpo, congelado) y el enlace pieza↔recurso.
   El enum de estados incluye `descartada` desde el principio
   aunque aún sea inalcanzable.
 - API: crear pieza (nace en `propuesta`), editar campos antes de
@@ -133,7 +133,7 @@ Decisiones transversales del plan:
 
 - [x] Esquema `piece`, `document` y `piece_document` + migración generada con drizzle-kit
   - Aporta: persiste el modelo del pipeline; `PIECE_STATUSES` completo desde el inicio (incluida `discarded`, inalcanzable) y `DOCUMENT_TYPES` extensible sin migración; `piece_document` es el único mecanismo de vínculo pieza↔documento, uniforme para recurso, borrador y brief futuros.
-  - Contexto: `piece` lleva `workspace_id`, `status`, `topic`, `reader_question`, `angle`, `fields_frozen` y timestamps, con índice `(workspace_id, status)`; `document` lleva `workspace_id`, `type`, `title`, `body`, `link`, `frozen` y timestamps, con índice `(workspace_id, type)`; `piece_document` es PK `(piece_id, document_id)` con `created_at` e índice en `document_id` para «piezas que sostiene este recurso»; nombres en inglés, FKs con `onDelete: cascade`.
+  - Contexto: `piece` lleva `workspace_id`, `status`, `topic`, `reader_question`, `angle`, `fields_frozen` y timestamps, con índice `(workspace_id, status)`; `document` lleva `workspace_id`, `type`, `title`, `body`, `frozen` y timestamps, con índice `(workspace_id, type)`; `piece_document` es PK `(piece_id, document_id)` con `created_at` e índice en `document_id` para «piezas que sostiene este recurso»; nombres en inglés, FKs con `onDelete: cascade`.
 - [x] `src/server/actor.ts`: resolución de actor y guard de sesión
   - Aporta: la frontera sesión/clave y el tenant se deciden en un solo lugar; todas las rutas de dominio heredan actor + workspace y el `403` a clave es reusable.
   - Contexto: sin `activeOrganizationId` válido, el workspace es el personal del propio usuario —la asociación estable es `user.personalWorkspaceId` —puntero inmutable escrito al crear la cuenta y rellenado en la migración para cuentas previas por titularidad verificada (membresía `owner` + slug original, o un único espacio `personal` en propiedad)—, no el slug (renombrable) ni cualquier membresía en una organización `personal` (un usuario puede ser invitado al espacio personal de otro)—; el campo también lo pueblan `organization/create` y `organization/accept-invitation` además de `set-active`; la clave llega por la cabecera `x-api-key` y se verifica con `auth.api.verifyApiKey` (`referenceId` = workspace); la sesión tiene prioridad si llegan ambas; el actor para eventos es `user:{userId}`/`api-key:{keyId}`.

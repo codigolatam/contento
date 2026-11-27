@@ -357,12 +357,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "link": {
-          "name": "link",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "frozen": {
           "name": "frozen",
           "type": "boolean",

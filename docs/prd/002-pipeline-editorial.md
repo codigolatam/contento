@@ -50,7 +50,7 @@ máquina prepara y escribe, la persona decide y retira—.
   desde cualquier estado con su motivo; es terminal, la pieza
   sale del kanban junto a su borrador y queda consultable en la
   vista de archivo con su rastro. Los recursos ligados sobreviven
-  en el workspace y el enlace queda como parte del rastro.
+  en el workspace y la relación queda como parte del rastro.
 - **CU-9 — Gestionar recursos:** en la sección de recursos del
   workspace o inline en la ficha; los recursos se crean sueltos o
   ya ligados, se comparten entre piezas y se listan con las
@@ -58,7 +58,7 @@ máquina prepara y escribe, la persona decide y retira—.
   - Borde: quitar el soporte de una pieza ya aprobada exige actor
     de sesión; ligar sigue libre tras la puerta.
   - Borde: borrar un recurso elimina el documento con sus
-    enlaces.
+    relaciones.
 
 ## Comportamiento esperado
 
@@ -96,5 +96,5 @@ una pieza muerta sale al archivo con su motivo y rastro intactos.
 - Informe de revisión como entidad, comentarios anclados,
   versionado del borrador y brief (propuesta 003).
 - Biblioteca de recursos con carga de archivos —el recurso es
-  texto: título, nota y enlace—.
+  texto: título y nota—.
 - Analítica de etapa y destinos de exportación.

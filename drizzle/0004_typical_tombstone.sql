@@ -4,7 +4,6 @@ CREATE TABLE "document" (
 	"type" text NOT NULL,
 	"title" text NOT NULL,
 	"body" text,
-	"link" text,
 	"frozen" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL

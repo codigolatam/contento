@@ -653,7 +653,7 @@ describe("pipeline api", () => {
       const created = await post(
         app,
         "/api/documents",
-        { title: "Source", body: "notes", link: "https://example.com" },
+        { title: "Source", body: "notes" },
         { cookie: session.cookie },
       );
       const doc = (await created.json()) as { id: string; type: string; pieceIds?: string[] };
@@ -930,7 +930,6 @@ describe("pipeline api", () => {
         { title: "   " },
         { title: 9 },
         { title: "x", body: 5 },
-        { title: "x", link: {} },
         { title: "x", pieceIds: "nope" },
         { title: "x", pieceIds: [1] },
       ];

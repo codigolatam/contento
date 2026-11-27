@@ -220,7 +220,6 @@ export const createDocument = async (
     type: DocumentType;
     title: string;
     body?: string;
-    link?: string;
     pieceIds?: string[];
   },
 ) =>
@@ -233,7 +232,6 @@ export const createDocument = async (
         type: input.type,
         title: input.title.trim(),
         body: cleanField(input.body),
-        link: cleanField(input.link),
       })
       .returning();
     assert(row !== undefined);

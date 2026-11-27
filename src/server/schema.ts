@@ -214,7 +214,6 @@ export const document = pgTable(
     type: text("type").notNull(),
     title: text("title").notNull(),
     body: text("body"),
-    link: text("link"),
     frozen: boolean("frozen").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

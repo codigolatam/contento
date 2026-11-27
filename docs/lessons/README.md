@@ -22,3 +22,6 @@ Notas de lecciones aprendidas de las correcciones del usuario. Cada tema es un a
 - semantica-del-dominio.md
   - Disparadores: documento, recurso, enlace, link, pipeline editorial, src/server/schema.ts, migraciones
   - Resumen: Las palabras ambiguas del dominio no se materializan como campos técnicos sin confirmar su referente.
+- identidad-humana-del-dominio.md
+  - Disparadores: src/server/schema.ts, kanban, tarjeta, creación, UX, identificador, null, título, tema
+  - Resumen: Las entidades visibles necesitan un identificador humano obligatorio desde su creación.
